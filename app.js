@@ -8,6 +8,9 @@ const state = {
   activeCategory: 'All',
   searchQuery: '',
   activeSlide: 0,
+  currentUser: null,
+  accounts: [],
+  deletedPostIds: [],
   quotes: [
     { text: "You may have the universe if I may have Italy.", author: "Giuseppe Verdi" },
     { text: "Paris is always a good idea.", author: "Audrey Hepburn" },
@@ -37,7 +40,9 @@ const DOM = {
   newsletterEmail: document.getElementById('newsletter-email'),
   newsletterMsg: document.getElementById('newsletter-message'),
   quoteText: document.getElementById('travel-quote'),
-  quoteAuthor: document.getElementById('quote-author')
+  quoteAuthor: document.getElementById('quote-author'),
+  authStatusDesktop: document.getElementById('auth-status'),
+  authStatusMobile: document.getElementById('auth-status-mobile')
 };
 
 // ----------------------------------------------------
@@ -64,6 +69,28 @@ async function initApp() {
   // Load Slider logic
   initSlider();
 
+  // Set up auth state
+  state.currentUser = JSON.parse(sessionStorage.getItem('currentUser')) || null;
+  
+  // Set up accounts list
+  const savedAccounts = localStorage.getItem('accounts');
+  if (savedAccounts) {
+    state.accounts = JSON.parse(savedAccounts);
+  } else {
+    state.accounts = [
+      { email: 'shiakaten@gmail.com', name: 'Shiakaten', blocked: false },
+      { email: 'traveler1@gmail.com', name: 'Alice Smith', blocked: false },
+      { email: 'visitor2@gmail.com', name: 'Bob Johnson', blocked: true }
+    ];
+    localStorage.setItem('accounts', JSON.stringify(state.accounts));
+  }
+
+  // Load deleted post IDs list
+  state.deletedPostIds = JSON.parse(localStorage.getItem('deleted_post_ids')) || [];
+
+  // Update authentication widget layout
+  renderAuthWidgets();
+
   // Fetch Blog Posts from JSON database
   try {
     const response = await fetch('posts.json');
@@ -72,11 +99,14 @@ async function initApp() {
     }
     const basePosts = await response.json();
     const customPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
-    state.posts = [...customPosts, ...basePosts];
+    const allMerged = [...customPosts, ...basePosts];
+    
+    // Filter out deleted posts
+    state.posts = allMerged.filter(p => !state.deletedPostIds.includes(p.id) && !state.deletedPostIds.includes(String(p.id)) && !state.deletedPostIds.includes(Number(p.id)));
   } catch (error) {
     console.error('Error fetching blog database:', error);
     const customPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
-    state.posts = customPosts;
+    state.posts = customPosts.filter(p => !state.deletedPostIds.includes(p.id) && !state.deletedPostIds.includes(String(p.id)) && !state.deletedPostIds.includes(Number(p.id)));
   }
 
   // Listen for hash routing change
@@ -110,6 +140,14 @@ function router() {
     renderContactView();
   } else if (hash === '#/add-post') {
     renderAddPostView();
+  } else if (hash === '#/login') {
+    renderLoginView();
+  } else if (hash === '#/admin') {
+    if (!state.currentUser || !state.currentUser.isAdmin) {
+      window.location.hash = '#/';
+      return;
+    }
+    renderAdminView();
   } else if (hash === '#/disclaimer') {
     renderDisclaimerView();
   } else {
@@ -186,10 +224,12 @@ function renderHomeView() {
 
   // Render Hero Featured Post ONLY if not searching or filtering by different categories
   if (featuredPost && state.activeCategory === 'All' && state.searchQuery === '') {
+    const deleteBtn = state.currentUser?.isAdmin ? `<button class="post-delete-btn-overlay" data-id="${featuredPost.id}">Delete</button>` : '';
     html += `
-      <section class="featured-post-hero">
+      <section class="featured-post-hero" style="position:relative;">
         <div class="hero-image-wrap">
           <span class="hero-category-tag">${featuredPost.category}</span>
+          ${deleteBtn}
           <img src="${featuredPost.coverImage}" alt="${featuredPost.title}">
         </div>
         <div class="hero-content">
@@ -212,18 +252,12 @@ function renderHomeView() {
     `;
   }
 
-  // Render Post Grid List
-  if (filtered.length > 0) {
-    html += `<div class="posts-grid">`;
-    filtered.forEach(post => {
-      // If we render featured post above, skip it in the list to avoid duplicate
-      if (post.id === featuredPost?.id && state.activeCategory === 'All' && state.searchQuery === '') {
-        return;
-      }
+      const deleteBtn = state.currentUser?.isAdmin ? `<button class="post-delete-btn-overlay" data-id="${post.id}">Delete</button>` : '';
       html += `
-        <article class="post-card">
+        <article class="post-card" style="position:relative;">
           <div class="card-image-wrap">
             <span class="card-category-tag">${post.category}</span>
+            ${deleteBtn}
             <a href="#/post/${post.slug}">
               <img src="${post.coverImage}" alt="${post.title}" loading="lazy">
             </a>
@@ -257,6 +291,19 @@ function renderHomeView() {
   }
 
   DOM.mainContent.innerHTML = html;
+
+  // Bind Admin Delete buttons
+  const deleteBtns = DOM.mainContent.querySelectorAll('.post-delete-btn-overlay');
+  deleteBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const id = e.target.getAttribute('data-id');
+      if (confirm('Are you sure you want to delete this blog post?')) {
+        deletePost(id);
+      }
+    });
+  });
 
   // Bind Events for filters and search
   const filterBtns = DOM.mainContent.querySelectorAll('.filter-btn');
@@ -354,14 +401,23 @@ function renderPostDetailView(slug) {
     `;
   }
 
+  const adminRow = state.currentUser?.isAdmin ? `
+    <div class="detail-header-delete-row" style="margin-bottom: 24px;">
+      <button class="btn-action-small btn-action-delete" id="btn-delete-detail" data-id="${post.id}" style="padding: 10px 16px; font-size: 0.85rem;">Delete This Post</button>
+    </div>
+  ` : '';
+
   const html = `
     <article class="post-detail-container">
-      <button class="btn-back" onclick="window.location.hash='#/'">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        Back to travel list
-      </button>
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <button class="btn-back" onclick="window.location.hash='#/'" style="margin-bottom:0;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Back to travel list
+        </button>
+        ${adminRow}
+      </div>
 
-      <div class="detail-header">
+      <div class="detail-header" style="margin-top:24px;">
         <span class="detail-category">${post.category}</span>
         <h1 class="detail-title">${post.title}</h1>
         <div class="post-meta" style="margin-top:12px;">
@@ -413,6 +469,17 @@ function renderPostDetailView(slug) {
   `;
 
   DOM.mainContent.innerHTML = html;
+
+  // Bind Admin Delete button
+  const deleteBtn = DOM.mainContent.querySelector('#btn-delete-detail');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', (e) => {
+      const id = e.target.getAttribute('data-id');
+      if (confirm('Are you sure you want to delete this blog post?')) {
+        deletePost(id);
+      }
+    });
+  }
 
   // Bind comment form submit
   const commentForm = DOM.mainContent.querySelector('#comment-form');
@@ -567,6 +634,431 @@ function renderContactView() {
       contactForm.reset();
     });
   }
+}
+
+// ----------------------------------------------------
+// Authentication Widget & Flow
+// ----------------------------------------------------
+function renderAuthWidgets() {
+  const user = state.currentUser;
+  
+  const getHtml = (isMobile) => {
+    if (user) {
+      const emailEscaped = escapeHTML(user.email);
+      const adminSpan = user.isAdmin ? `<span class="admin-badge">Admin</span>` : '';
+      const adminLink = user.isAdmin ? `<a href="#/admin" style="font-weight:700; margin-right:16px; font-size:0.85rem; text-transform:uppercase; color:var(--color-secondary);">Dashboard</a>` : '';
+      
+      if (isMobile) {
+        return `
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <span class="auth-user-email" style="justify-content:center;">${emailEscaped} ${adminSpan}</span>
+            ${user.isAdmin ? `<a href="#/admin" class="btn-readmore-link" style="text-align:center; margin-bottom:4px;">Admin Dashboard</a>` : ''}
+            <button class="btn-auth btn-auth-logout" id="btn-logout-mobile" style="width:100%;">Logout</button>
+          </div>
+        `;
+      } else {
+        return `
+          <span class="auth-user-email">${emailEscaped} ${adminSpan}</span>
+          ${adminLink}
+          <button class="btn-auth btn-auth-logout" id="btn-logout-desktop">Logout</button>
+        `;
+      }
+    } else {
+      if (isMobile) {
+        return `<a href="#/login" class="btn-primary" style="display:block; text-align:center; padding:10px 16px;">Login / Sign Up</a>`;
+      } else {
+        return `<a href="#/login" class="btn-auth btn-auth-login">Login / Sign Up</a>`;
+      }
+    }
+  };
+
+  if (DOM.authStatusDesktop) {
+    DOM.authStatusDesktop.innerHTML = getHtml(false);
+    const logoutBtn = DOM.authStatusDesktop.querySelector('#btn-logout-desktop');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', handleLogout);
+    }
+  }
+
+  if (DOM.authStatusMobile) {
+    DOM.authStatusMobile.innerHTML = getHtml(true);
+    const logoutBtn = DOM.authStatusMobile.querySelector('#btn-logout-mobile');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', handleLogout);
+    }
+  }
+}
+
+function handleLogout() {
+  sessionStorage.removeItem('currentUser');
+  state.currentUser = null;
+  renderAuthWidgets();
+  if (window.location.hash === '#/admin') {
+    window.location.hash = '#/';
+  } else {
+    router();
+  }
+}
+
+// ----------------------------------------------------
+// Login & Signup View Rendering
+// ----------------------------------------------------
+function renderLoginView() {
+  const html = `
+    <div class="contact-view-container" style="max-width: 500px; margin: 0 auto;">
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tab-login-btn">Login</button>
+        <button class="auth-tab-btn" id="tab-signup-btn">Sign Up</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="comment-form" style="background:var(--color-bg-site);">
+        <h2 class="comment-form-title" style="font-size:1.5rem; text-align:center; margin-bottom:20px;">Welcome Back</h2>
+        <div id="login-alert-area"></div>
+        
+        <div class="form-group" style="margin-bottom:16px;">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" class="form-control" placeholder="shiakaten@gmail.com" required>
+        </div>
+        <div class="form-group" style="margin-bottom:20px;">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%;">Login</button>
+        <p style="font-size: 0.8rem; text-align:center; color: var(--color-text-muted); margin-top: 12px;">Tip: Use email <strong>shiakaten@gmail.com</strong> for Admin permissions!</p>
+      </form>
+
+      <!-- Signup Form -->
+      <form id="signup-form" class="comment-form" style="background:var(--color-bg-site); display:none;">
+        <h2 class="comment-form-title" style="font-size:1.5rem; text-align:center; margin-bottom:20px;">Create Account</h2>
+        <div id="signup-alert-area"></div>
+        
+        <div class="form-group" style="margin-bottom:16px;">
+          <label for="signup-name">Display Name</label>
+          <input type="text" id="signup-name" class="form-control" placeholder="Your Name" required>
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label for="signup-email">Email Address</label>
+          <input type="email" id="signup-email" class="form-control" placeholder="email@example.com" required>
+        </div>
+        <div class="form-group" style="margin-bottom:20px;">
+          <label for="signup-password">Password</label>
+          <input type="password" id="signup-password" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%;">Sign Up</button>
+      </form>
+    </div>
+  `;
+  DOM.mainContent.innerHTML = html;
+
+  // Cache Auth elements
+  const loginForm = DOM.mainContent.querySelector('#login-form');
+  const signupForm = DOM.mainContent.querySelector('#signup-form');
+  const tabLoginBtn = DOM.mainContent.querySelector('#tab-login-btn');
+  const tabSignupBtn = DOM.mainContent.querySelector('#tab-signup-btn');
+  const loginAlert = DOM.mainContent.querySelector('#login-alert-area');
+  const signupAlert = DOM.mainContent.querySelector('#signup-alert-area');
+
+  // Tab switcher
+  tabLoginBtn.addEventListener('click', () => {
+    tabLoginBtn.classList.add('active');
+    tabSignupBtn.classList.remove('active');
+    loginForm.style.display = 'block';
+    signupForm.style.display = 'none';
+  });
+
+  tabSignupBtn.addEventListener('click', () => {
+    tabSignupBtn.classList.add('active');
+    tabLoginBtn.classList.remove('active');
+    signupForm.style.display = 'block';
+    loginForm.style.display = 'none';
+  });
+
+  // Handle Login Submit
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const emailVal = DOM.mainContent.querySelector('#login-email').value.trim();
+    
+    // Check if account is blocked
+    const matchedAccount = state.accounts.find(acc => acc.email.toLowerCase() === emailVal.toLowerCase());
+    if (matchedAccount && matchedAccount.blocked) {
+      loginAlert.innerHTML = `<div class="blocked-banner">This account has been blocked by the Administrator.</div>`;
+      return;
+    }
+
+    // Set Session
+    const userSession = {
+      email: emailVal,
+      name: matchedAccount ? matchedAccount.name : emailVal.split('@')[0],
+      isAdmin: emailVal.toLowerCase() === 'shiakaten@gmail.com'
+    };
+
+    // Save mock session
+    sessionStorage.setItem('currentUser', JSON.stringify(userSession));
+    state.currentUser = userSession;
+    
+    // Add to accounts list if not already there
+    if (!matchedAccount) {
+      state.accounts.push({
+        email: emailVal,
+        name: userSession.name,
+        blocked: false
+      });
+      localStorage.setItem('accounts', JSON.stringify(state.accounts));
+    }
+
+    renderAuthWidgets();
+    window.location.hash = '#/';
+  });
+
+  // Handle Signup Submit
+  signupForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nameVal = DOM.mainContent.querySelector('#signup-name').value.trim();
+    const emailVal = DOM.mainContent.querySelector('#signup-email').value.trim();
+    
+    // Check if exists
+    const exists = state.accounts.some(acc => acc.email.toLowerCase() === emailVal.toLowerCase());
+    if (exists) {
+      signupAlert.innerHTML = `<div class="blocked-banner" style="background:#FFF3CD; color:#856404; border-color:#FFEEBA;">Account already exists. Try Logging in!</div>`;
+      return;
+    }
+
+    // Create Account
+    const newAcc = { email: emailVal, name: nameVal, blocked: false };
+    state.accounts.push(newAcc);
+    localStorage.setItem('accounts', JSON.stringify(state.accounts));
+
+    // Sign in automatically
+    const userSession = {
+      email: emailVal,
+      name: nameVal,
+      isAdmin: emailVal.toLowerCase() === 'shiakaten@gmail.com'
+    };
+    sessionStorage.setItem('currentUser', JSON.stringify(userSession));
+    state.currentUser = userSession;
+
+    renderAuthWidgets();
+    window.location.hash = '#/';
+  });
+}
+
+// ----------------------------------------------------
+// Admin Control Panel View Rendering
+// ----------------------------------------------------
+function renderAdminView() {
+  // Generate Accounts Rows
+  const accountRows = state.accounts.map(acc => {
+    // Cannot block or delete self (the main admin)
+    const isSelf = acc.email.toLowerCase() === 'shiakaten@gmail.com';
+    const blockText = acc.blocked ? 'Unblock' : 'Block';
+    const blockClass = acc.blocked ? 'btn-action-unblock' : 'btn-action-block';
+    
+    const actionsHtml = isSelf ? `<span class="admin-badge" style="background:var(--color-secondary-light); color:var(--color-secondary);">Owner (System)</span>` : `
+      <button class="btn-action-small ${blockClass}" data-action="toggle-block" data-email="${acc.email}">${blockText}</button>
+      <button class="btn-action-small btn-action-delete" data-action="delete-user" data-email="${acc.email}">Delete</button>
+    `;
+
+    return `
+      <tr>
+        <td style="font-weight:600;">${escapeHTML(acc.name)}</td>
+        <td>${escapeHTML(acc.email)}</td>
+        <td>${acc.blocked ? `<span class="admin-badge" style="background:#F8D7DA; color:#721C24;">Blocked</span>` : `<span class="admin-badge" style="background:#D4EDDA; color:#155724;">Active</span>`}</td>
+        <td style="text-align:right;">${actionsHtml}</td>
+      </tr>
+    `;
+  }).join('');
+
+  // Generate Blogs list
+  const blogRows = state.posts.map(post => {
+    return `
+      <tr>
+        <td style="font-weight:600; max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+          <a href="#/post/${post.slug}" target="_blank">${escapeHTML(post.title)}</a>
+        </td>
+        <td>${post.category}</td>
+        <td>${post.date}</td>
+        <td style="text-align:right;">
+          <button class="btn-action-small btn-action-delete" data-action="delete-post" data-id="${post.id}">Delete</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  const html = `
+    <div class="about-view-container admin-dashboard">
+      <h1 class="detail-title" style="margin-bottom:8px;">Admin Dashboard</h1>
+      <p style="color:var(--color-text-muted); margin-bottom:20px;">Welcome back, Administrator. Control user authentication states, accounts list access parameters, and manage published blog postings.</p>
+
+      <div class="admin-summary-cards">
+        <div class="admin-card">
+          <h5>Total Blog Posts</h5>
+          <div class="admin-card-number">${state.posts.length}</div>
+        </div>
+        <div class="admin-card alt">
+          <h5>Total Accounts</h5>
+          <div class="admin-card-number">${state.accounts.length}</div>
+        </div>
+        <div class="admin-card" style="border-left-color: var(--color-accent);">
+          <h5>Blocked Accounts</h5>
+          <div class="admin-card-number">${state.accounts.filter(a => a.blocked).length}</div>
+        </div>
+      </div>
+
+      <!-- Account Management Section -->
+      <section class="admin-section">
+        <div class="admin-section-header">
+          <h3 style="margin-bottom:0;">Account Management</h3>
+          <button class="btn-primary" id="btn-add-mock-user" style="padding: 6px 14px; font-size: 0.8rem;">Add Mock User</button>
+        </div>
+        
+        <!-- Add user mini form overlay (hidden by default) -->
+        <div id="add-user-form-container" style="display:none; background:var(--color-bg-site); padding:20px; border-radius:6px; border:1px solid var(--color-border); margin-bottom:20px;">
+          <h4 style="margin-bottom:12px;">Create New User Account</h4>
+          <div class="form-grid" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label for="admin-add-name">Name</label>
+              <input type="text" id="admin-add-name" class="form-control" placeholder="Full Name">
+            </div>
+            <div class="form-group">
+              <label for="admin-add-email">Email</label>
+              <input type="email" id="admin-add-email" class="form-control" placeholder="user@gmail.com">
+            </div>
+          </div>
+          <button class="btn-primary" id="btn-admin-submit-user" style="padding:8px 16px; font-size:0.8rem;">Create User</button>
+          <button class="btn-auth btn-auth-login" id="btn-admin-cancel-user" style="padding:8px 16px; font-size:0.8rem; margin-left:8px;">Cancel</button>
+        </div>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${accountRows}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Blog Management Section -->
+      <section class="admin-section">
+        <h3 class="admin-section-header">Blog Posts Management</h3>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${blogRows}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  `;
+  DOM.mainContent.innerHTML = html;
+
+  // Bind Actions
+  // Toggle block/unblock user
+  DOM.mainContent.querySelectorAll('[data-action="toggle-block"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const email = e.target.getAttribute('data-email');
+      const matched = state.accounts.find(a => a.email === email);
+      if (matched) {
+        matched.blocked = !matched.blocked;
+        localStorage.setItem('accounts', JSON.stringify(state.accounts));
+        renderAdminView();
+      }
+    });
+  });
+
+  // Delete user account
+  DOM.mainContent.querySelectorAll('[data-action="delete-user"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const email = e.target.getAttribute('data-email');
+      if (confirm(`Are you sure you want to delete user ${email}?`)) {
+        state.accounts = state.accounts.filter(a => a.email !== email);
+        localStorage.setItem('accounts', JSON.stringify(state.accounts));
+        renderAdminView();
+      }
+    });
+  });
+
+  // Delete blog post
+  DOM.mainContent.querySelectorAll('[data-action="delete-post"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = e.target.getAttribute('data-id');
+      if (confirm('Are you sure you want to delete this blog post?')) {
+        deletePost(id);
+        renderAdminView(); // Stay on Admin view
+      }
+    });
+  });
+
+  // Add mock user view binders
+  const btnShowAdd = DOM.mainContent.querySelector('#btn-add-mock-user');
+  const addFormWrap = DOM.mainContent.querySelector('#add-user-form-container');
+  const btnCancelUser = DOM.mainContent.querySelector('#btn-admin-cancel-user');
+  const btnCreateUser = DOM.mainContent.querySelector('#btn-admin-submit-user');
+
+  btnShowAdd.addEventListener('click', () => {
+    addFormWrap.style.display = 'block';
+  });
+  
+  btnCancelUser.addEventListener('click', () => {
+    addFormWrap.style.display = 'none';
+  });
+
+  btnCreateUser.addEventListener('click', () => {
+    const nameVal = DOM.mainContent.querySelector('#admin-add-name').value.trim();
+    const emailVal = DOM.mainContent.querySelector('#admin-add-email').value.trim();
+    if (nameVal === '' || emailVal === '') return;
+
+    state.accounts.push({
+      email: emailVal,
+      name: nameVal,
+      blocked: false
+    });
+    localStorage.setItem('accounts', JSON.stringify(state.accounts));
+    renderAdminView();
+  });
+}
+
+// ----------------------------------------------------
+// Deletion Helpers
+// ----------------------------------------------------
+function deletePost(id) {
+  // Add to deleted posts index list
+  const deletedIds = JSON.parse(localStorage.getItem('deleted_post_ids')) || [];
+  deletedIds.push(id);
+  // Also push string representation just in case
+  deletedIds.push(String(id));
+  localStorage.setItem('deleted_post_ids', JSON.stringify(deletedIds));
+
+  // Sync state deletedPostIds list
+  state.deletedPostIds = deletedIds;
+
+  // Remove from state list
+  state.posts = state.posts.filter(p => p.id !== id && String(p.id) !== String(id) && Number(p.id) !== Number(id));
+
+  // If deleted from custom posts, clean it up there too
+  const customPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+  const filteredCustom = customPosts.filter(p => p.id !== id && String(p.id) !== String(id) && Number(p.id) !== Number(id));
+  localStorage.setItem('custom_posts', JSON.stringify(filteredCustom));
+
+  // Redirect back home
+  window.location.hash = '#/';
 }
 
 // ----------------------------------------------------
