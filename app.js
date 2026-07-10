@@ -251,7 +251,15 @@ function renderHomeView() {
       <h3 style="margin-bottom:24px; font-size:1.6rem; border-bottom: 1px solid var(--color-border); padding-bottom:12px;">Latest Travel Stories</h3>
     `;
   }
-
+  
+  // Render Post Grid List
+  if (filtered.length > 0) {
+    html += `<div class="posts-grid">`;
+    filtered.forEach(post => {
+      // If we render featured post above, skip it in the list to avoid duplicate
+      if (post.id === featuredPost?.id && state.activeCategory === 'All' && state.searchQuery === '') {
+        return;
+      }
       const deleteBtn = state.currentUser?.isAdmin ? `<button class="post-delete-btn-overlay" data-id="${post.id}">Delete</button>` : '';
       html += `
         <article class="post-card" style="position:relative;">
