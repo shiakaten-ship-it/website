@@ -24,9 +24,11 @@ const DOM = {
   navHome: document.getElementById('nav-home'),
   navAbout: document.getElementById('nav-about'),
   navContact: document.getElementById('nav-contact'),
+  navAddPost: document.getElementById('nav-add-post'),
   drawerHome: document.getElementById('drawer-home'),
   drawerAbout: document.getElementById('drawer-about'),
   drawerContact: document.getElementById('drawer-contact'),
+  drawerAddPost: document.getElementById('drawer-add-post'),
   mobileToggle: document.getElementById('mobile-menu-toggle'),
   mobileClose: document.getElementById('mobile-menu-close'),
   mobileDrawer: document.getElementById('mobile-drawer'),
@@ -68,10 +70,13 @@ async function initApp() {
     if (!response.ok) {
       throw new Error('Failed to fetch posts.json');
     }
-    state.posts = await response.json();
+    const basePosts = await response.json();
+    const customPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+    state.posts = [...customPosts, ...basePosts];
   } catch (error) {
     console.error('Error fetching blog database:', error);
-    state.posts = []; // Fallback to empty array
+    const customPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+    state.posts = customPosts;
   }
 
   // Listen for hash routing change
@@ -103,6 +108,8 @@ function router() {
     renderAboutView();
   } else if (hash === '#/contact') {
     renderContactView();
+  } else if (hash === '#/add-post') {
+    renderAddPostView();
   } else if (hash === '#/disclaimer') {
     renderDisclaimerView();
   } else {
@@ -114,7 +121,7 @@ function router() {
 }
 
 function updateActiveNavigation(hash) {
-  const allNavItems = [DOM.navHome, DOM.navAbout, DOM.navContact, DOM.drawerHome, DOM.drawerAbout, DOM.drawerContact];
+  const allNavItems = [DOM.navHome, DOM.navAbout, DOM.navContact, DOM.navAddPost, DOM.drawerHome, DOM.drawerAbout, DOM.drawerContact, DOM.drawerAddPost];
   allNavItems.forEach(el => el?.classList.remove('active'));
 
   if (hash === '#/' || hash === '') {
@@ -126,6 +133,9 @@ function updateActiveNavigation(hash) {
   } else if (hash === '#/contact') {
     DOM.navContact?.classList.add('active');
     DOM.drawerContact?.classList.add('active');
+  } else if (hash === '#/add-post') {
+    DOM.navAddPost?.classList.add('active');
+    DOM.drawerAddPost?.classList.add('active');
   }
 }
 
@@ -572,6 +582,154 @@ function renderDisclaimerView() {
     </div>
   `;
   DOM.mainContent.innerHTML = html;
+}
+
+// ----------------------------------------------------
+// Add Blog Post View Rendering
+// ----------------------------------------------------
+function renderAddPostView() {
+  const html = `
+    <div class="contact-view-container">
+      <h1 class="detail-title">Create a New Travel Post</h1>
+      <p style="color:var(--color-text-muted); margin-bottom:32px;">Add your own experience. Once submitted, your post will be immediately visible on the home page list!</p>
+      
+      <form id="add-post-form" class="comment-form" style="background:var(--color-bg-site);">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="post-title">Post Title</label>
+            <input type="text" id="post-title" class="form-control" placeholder="e.g., A Magical Sunset in Provence" required>
+          </div>
+          <div class="form-group">
+            <label for="post-author">Author Name</label>
+            <input type="text" id="post-author" class="form-control" placeholder="Your Name" required>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="post-category">Country/Category</label>
+            <select id="post-category" class="form-control" required style="height: 43px; padding-top: 8px; padding-bottom: 8px;">
+              <option value="Italy">Italy 🇮🇹</option>
+              <option value="France">France 🇫🇷</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="post-readtime">Read Time Estimate</label>
+            <input type="text" id="post-readtime" class="form-control" placeholder="e.g., 4 min read" required>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:16px;">
+          <label for="post-excerpt">Short Summary / Excerpt</label>
+          <input type="text" id="post-excerpt" class="form-control" placeholder="Brief 1-2 sentence description of the post..." required>
+        </div>
+
+        <div class="form-group" style="margin-bottom:16px;">
+          <label for="post-cover">Cover Image URL</label>
+          <input type="url" id="post-cover" class="form-control" placeholder="Paste an Unsplash image URL or select a preset below" required>
+          <div class="cover-presets" style="margin-top: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+            <div class="preset-option" style="cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: var(--transition-smooth);" data-url="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80">
+              <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=80&h=60&q=80" alt="Paris Seine" style="width:100%; display:block; object-fit:cover; height:60px;">
+            </div>
+            <div class="preset-option" style="cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: var(--transition-smooth);" data-url="https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=800&q=80">
+              <img src="https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=80&h=60&q=80" alt="Cinque Terre" style="width:100%; display:block; object-fit:cover; height:60px;">
+            </div>
+            <div class="preset-option" style="cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: var(--transition-smooth);" data-url="https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80">
+              <img src="https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=80&h=60&q=80" alt="Rome Colosseum" style="width:100%; display:block; object-fit:cover; height:60px;">
+            </div>
+            <div class="preset-option" style="cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: var(--transition-smooth);" data-url="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=80">
+              <img src="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=80&h=60&q=80" alt="Nice Riviera" style="width:100%; display:block; object-fit:cover; height:60px;">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:16px;">
+          <label for="post-content">Full Story Content (Use blank lines to separate paragraphs)</label>
+          <textarea id="post-content" class="form-control" placeholder="Write your travel story here. Press Enter twice to create new paragraphs..." style="min-height:180px;" required></textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom:24px;">
+          <label for="post-tags">Tags (comma separated)</label>
+          <input type="text" id="post-tags" class="form-control" placeholder="e.g., Road Trip, Cafes, Summer">
+        </div>
+
+        <button type="submit" class="btn-primary" style="width:100%;">Publish Post</button>
+      </form>
+    </div>
+  `;
+  DOM.mainContent.innerHTML = html;
+
+  // Preset Selection Logic
+  const presets = DOM.mainContent.querySelectorAll('.preset-option');
+  const coverInput = DOM.mainContent.querySelector('#post-cover');
+  presets.forEach(p => {
+    p.addEventListener('click', () => {
+      presets.forEach(pr => pr.style.borderColor = 'transparent');
+      p.style.borderColor = 'var(--color-primary)';
+      coverInput.value = p.getAttribute('data-url');
+    });
+  });
+
+  // Handle Post Submit
+  const postForm = DOM.mainContent.querySelector('#add-post-form');
+  if (postForm) {
+    postForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const titleVal = DOM.mainContent.querySelector('#post-title').value;
+      const authorVal = DOM.mainContent.querySelector('#post-author').value;
+      const categoryVal = DOM.mainContent.querySelector('#post-category').value;
+      const readtimeVal = DOM.mainContent.querySelector('#post-readtime').value;
+      const excerptVal = DOM.mainContent.querySelector('#post-excerpt').value;
+      const coverVal = DOM.mainContent.querySelector('#post-cover').value;
+      
+      // Parse content paragraphs by splitting on empty lines
+      const contentRaw = DOM.mainContent.querySelector('#post-content').value;
+      const contentParagraphs = contentRaw
+        .split(/\n\s*\n/)
+        .map(p => p.trim())
+        .filter(p => p.length > 0);
+
+      // Parse tags
+      const tagsVal = DOM.mainContent.querySelector('#post-tags').value;
+      const tagsArray = tagsVal
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+
+      const slug = titleVal
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+
+      const newPost = {
+        id: Date.now(),
+        title: titleVal,
+        slug: slug,
+        category: categoryVal,
+        tags: tagsArray.length > 0 ? tagsArray : [categoryVal],
+        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        readTime: readtimeVal,
+        author: authorVal,
+        featured: false,
+        coverImage: coverVal,
+        excerpt: excerptVal,
+        content: contentParagraphs,
+        gallery: []
+      };
+
+      // Retrieve existing custom posts, prepend new post, and save
+      const customPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+      customPosts.unshift(newPost);
+      localStorage.setItem('custom_posts', JSON.stringify(customPosts));
+
+      // Prepend to application state active post list
+      state.posts.unshift(newPost);
+
+      // Reset and redirect back home
+      window.location.hash = '#/';
+    });
+  }
 }
 
 // ----------------------------------------------------
