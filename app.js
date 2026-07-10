@@ -202,14 +202,22 @@ function renderHomeView() {
   // Find Featured Post (Usually the first featured post in the unfiltered list or fallback)
   const featuredPost = state.posts.find(p => p.featured) || state.posts[0];
   
+  // Get all unique categories/countries in the posts list dynamically
+  const categories = ['All', ...new Set(state.posts.map(p => p.category))];
+  // Ensure Italy and France are present at the beginning if not already
+  if (!categories.includes('Italy')) categories.splice(1, 0, 'Italy');
+  if (!categories.includes('France')) categories.splice(2, 0, 'France');
+
+  const filterTabsHtml = categories.map(cat => `
+    <li><button class="filter-btn ${state.activeCategory === cat ? 'active' : ''}" data-cat="${cat}">${cat}</button></li>
+  `).join('');
+
   // Render main structure
   let html = `
     <!-- Top Filter & Search controls -->
     <div class="filter-search-container">
       <ul class="filter-tabs">
-        <li><button class="filter-btn ${state.activeCategory === 'All' ? 'active' : ''}" data-cat="All">All</button></li>
-        <li><button class="filter-btn ${state.activeCategory === 'Italy' ? 'active' : ''}" data-cat="Italy">Italy</button></li>
-        <li><button class="filter-btn ${state.activeCategory === 'France' ? 'active' : ''}" data-cat="France">France</button></li>
+        ${filterTabsHtml}
       </ul>
       
       <div class="search-box-wrap">
@@ -230,10 +238,11 @@ function renderHomeView() {
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" style="margin-left:4px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
       </div>
     ` : '';
+    const locationBadge = featuredPost.state && featuredPost.state !== 'N/A' ? `${featuredPost.state}, ${featuredPost.category}` : featuredPost.category;
     html += `
       <section class="featured-post-hero" style="position:relative;">
         <div class="hero-image-wrap">
-          <span class="hero-category-tag">${featuredPost.category}</span>
+          <span class="hero-category-tag">${locationBadge}</span>
           ${deleteBtn}
           ${videoPlayBadge}
           <img src="${featuredPost.coverImage}" alt="${featuredPost.title}">
@@ -275,7 +284,7 @@ function renderHomeView() {
       html += `
         <article class="post-card" style="position:relative;">
           <div class="card-image-wrap">
-            <span class="card-category-tag">${post.category}</span>
+            <span class="card-category-tag">${post.state && post.state !== 'N/A' ? `${post.state}, ${post.category}` : post.category}</span>
             ${deleteBtn}
             ${videoPlayBadge}
             <a href="#/post/${post.slug}">
@@ -462,7 +471,7 @@ function renderPostDetailView(slug) {
       </div>
 
       <div class="detail-header" style="margin-top:24px;">
-        <span class="detail-category">${post.category}</span>
+        <span class="detail-category">${post.state && post.state !== 'N/A' ? `${post.state}, ${post.category}` : post.category}</span>
         <h1 class="detail-title">${post.title}</h1>
         <div class="post-meta" style="margin-top:12px;">
           <span>By ${post.author}</span>
@@ -1114,6 +1123,7 @@ function renderDisclaimerView() {
 // ----------------------------------------------------
 function renderAddPostView() {
   let selectedType = 'picture'; // track active post type: 'picture' | 'video'
+  let countriesData = []; // hold dynamic countries & states database list
 
   const html = `
     <div class="contact-view-container">
@@ -1140,21 +1150,28 @@ function renderAddPostView() {
 
         <div class="form-grid">
           <div class="form-group">
-            <label for="post-category">Country/Category</label>
-            <select id="post-category" class="form-control" required style="height: 43px; padding-top: 8px; padding-bottom: 8px;">
-              <option value="Italy">Italy 🇮🇹</option>
-              <option value="France">France 🇫🇷</option>
+            <label for="post-country">Country</label>
+            <select id="post-country" class="form-control" required style="height: 43px; padding-top: 8px; padding-bottom: 8px;">
+              <option value="">Loading countries...</option>
             </select>
           </div>
+          <div class="form-group">
+            <label for="post-state">State / Province / Region</label>
+            <select id="post-state" class="form-control" required disabled style="height: 43px; padding-top: 8px; padding-bottom: 8px;">
+              <option value="">Select country first</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid" style="margin-top: 16px;">
           <div class="form-group">
             <label for="post-readtime">Read Time Estimate</label>
             <input type="text" id="post-readtime" class="form-control" placeholder="e.g., 4 min read" required>
           </div>
-        </div>
-
-        <div class="form-group" style="margin-bottom:16px;">
-          <label for="post-excerpt">Short Summary / Excerpt</label>
-          <input type="text" id="post-excerpt" class="form-control" placeholder="Brief 1-2 sentence description of the post..." required>
+          <div class="form-group" style="margin-bottom:16px;">
+            <label for="post-excerpt">Short Summary / Excerpt</label>
+            <input type="text" id="post-excerpt" class="form-control" placeholder="Brief 1-2 sentence description of the post..." required>
+          </div>
         </div>
 
         <!-- Picture Fields -->
@@ -1220,6 +1237,70 @@ function renderAddPostView() {
   const coverInput = DOM.mainContent.querySelector('#post-cover');
   const fileInput = DOM.mainContent.querySelector('#post-cover-file');
   const videoInput = DOM.mainContent.querySelector('#post-video');
+  const countrySelect = DOM.mainContent.querySelector('#post-country');
+  const stateSelect = DOM.mainContent.querySelector('#post-state');
+
+  // Fetch Countries & States dynamically
+  fetch('https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/master/countries%2Bstates.json')
+    .then(res => res.json())
+    .then(data => {
+      countriesData = data;
+      countrySelect.innerHTML = '<option value="">-- Select Country --</option>' + 
+        data.map(c => `<option value="${c.name}">${c.emoji ? c.emoji + ' ' : ''}${c.name}</option>`).join('');
+    })
+    .catch(err => {
+      console.error("Failed to load countries database", err);
+      // Clean fallback if offline
+      countrySelect.innerHTML = `
+        <option value="">-- Select Country --</option>
+        <option value="Italy">🇮🇹 Italy</option>
+        <option value="France">🇫🇷 France</option>
+      `;
+    });
+
+  // Country Change Cascading Logic
+  countrySelect.addEventListener('change', () => {
+    const selectedCountry = countrySelect.value;
+    if (!selectedCountry) {
+      stateSelect.innerHTML = '<option value="">Select country first</option>';
+      stateSelect.disabled = true;
+      return;
+    }
+
+    if (countriesData.length > 0) {
+      const countryObj = countriesData.find(c => c.name === selectedCountry);
+      if (countryObj && countryObj.states && countryObj.states.length > 0) {
+        stateSelect.innerHTML = '<option value="">-- Select State/Province/Region --</option>' +
+          countryObj.states.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+        stateSelect.disabled = false;
+      } else {
+        stateSelect.innerHTML = '<option value="N/A">No states available</option>';
+        stateSelect.disabled = false;
+      }
+    } else {
+      // Local fallback for offline mode
+      if (selectedCountry === 'Italy') {
+        stateSelect.innerHTML = `
+          <option value="">-- Select Region --</option>
+          <option value="Lazio">Lazio</option>
+          <option value="Tuscany">Tuscany</option>
+          <option value="Veneto">Veneto</option>
+          <option value="Campania">Campania</option>
+        `;
+        stateSelect.disabled = false;
+      } else if (selectedCountry === 'France') {
+        stateSelect.innerHTML = `
+          <option value="">-- Select Region --</option>
+          <option value="Île-de-France">Île-de-France</option>
+          <option value="Provence-Alpes-Côte d'Azur">Provence-Alpes-Côte d'Azur</option>
+        `;
+        stateSelect.disabled = false;
+      } else {
+        stateSelect.innerHTML = '<option value="N/A">N/A</option>';
+        stateSelect.disabled = false;
+      }
+    }
+  });
 
   btnPicture.addEventListener('click', () => {
     selectedType = 'picture';
@@ -1257,7 +1338,8 @@ function renderAddPostView() {
       
       const titleVal = DOM.mainContent.querySelector('#post-title').value;
       const authorVal = DOM.mainContent.querySelector('#post-author').value;
-      const categoryVal = DOM.mainContent.querySelector('#post-category').value;
+      const countryVal = countrySelect.value;
+      const stateVal = stateSelect.value;
       const readtimeVal = DOM.mainContent.querySelector('#post-readtime').value;
       const excerptVal = DOM.mainContent.querySelector('#post-excerpt').value;
       
@@ -1316,8 +1398,9 @@ function renderAddPostView() {
           type: selectedType,
           title: titleVal,
           slug: slug,
-          category: categoryVal,
-          tags: tagsArray.length > 0 ? tagsArray : [categoryVal],
+          category: countryVal,
+          state: stateVal,
+          tags: tagsArray.length > 0 ? tagsArray : [countryVal],
           date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
           readTime: readtimeVal,
           author: authorVal,
