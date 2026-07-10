@@ -762,7 +762,7 @@ function renderLoginView() {
         
         <div class="form-group" style="margin-bottom:16px;">
           <label for="login-email">Email Address</label>
-          <input type="email" id="login-email" class="form-control" placeholder="shiakaten@gmail.com" required>
+          <input type="email" id="login-email" class="form-control" placeholder="email@example.com" required>
         </div>
         <button type="submit" class="btn-primary" style="width:100%;">Login</button>
       </form>
