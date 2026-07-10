@@ -1,0 +1,107 @@
+[
+  {
+    "id": 1,
+    "title": "La Dolce Vita: A Journey From the Romantic Streets of Paris to Rome's Colosseum",
+    "slug": "paris-to-rome-journey",
+    "category": "Italy",
+    "tags": ["Road Trip", "Highlights", "Itinerary"],
+    "date": "July 12, 2026",
+    "readTime": "6 min read",
+    "author": "Marco",
+    "featured": true,
+    "coverImage": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80",
+    "excerpt": "Exploring the transit between two of Europe's most legendary capitals. Here is how we planned our route, where we stopped, and the sights that stole our hearts along the way.",
+    "content": [
+      "There is something undeniably magical about traveling overland through France and into Italy. It is a transition of language, landscape, cuisine, and culture that unfolds at a relaxing pace. In this post, I want to detail our recent itinerary, which began under the sparkling lights of the Eiffel Tower in Paris and concluded under the ancient shadow of the Colosseum in Rome.",
+      "Our first stop after leaving Paris was the scenic French Alps. Driving through the Chamonix Valley offered crisp morning air, towering snow-capped peaks, and cozy alpine chalets. From there, we drove through the Mont Blanc Tunnel directly into the Aosta Valley of Italy—a transition that felt almost instantaneous yet completely transformed the world around us.",
+      "As we headed south through Tuscany, we spent a couple of days wandering the cobblestone streets of Florence, eating fresh pasta, and viewing Michelangelo's David. The landscape shifted from rolling vineyards to olive groves, finally leading us to the historic core of Rome.",
+      "In Rome, we dedicated our time to exploring the ruins. Standing inside the Colosseum at sunset, you can almost hear the roar of history. It was the perfect culmination of a journey that stitched together the best of two beautiful nations."
+    ],
+    "gallery": [
+      "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80",
+      "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=600&q=80"
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Chasing Sunsets on the Amalfi Coast: Villages Clinging to the Cliffs",
+    "slug": "amalfi-coast-guide",
+    "category": "Italy",
+    "tags": ["Coastline", "Summer", "Photography"],
+    "date": "July 8, 2026",
+    "readTime": "4 min read",
+    "author": "Marco",
+    "featured": false,
+    "coverImage": "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?auto=format&fit=crop&w=800&q=80",
+    "excerpt": "Positano, Amalfi, and Ravello. If you've ever wanted to witness vertical towns painted in pastel hues hanging over the azure Mediterranean Sea, this guide is for you.",
+    "content": [
+      "The Amalfi Coast is one of those rare destinations that actually looks exactly like the postcards. It's a dramatic stretch of mountainous coastline south of Naples, famous for its steep cliffs, colorful harbors, and fragrant lemon orchards.",
+      "We based ourselves in Positano, a town that climbs a near-vertical cliffside. Every walk is a workout, but the views of the sea at every turn are worth the hundreds of stairs. In the evenings, the town lights up like a cluster of stars against the dark mountains.",
+      "One of our favorite highlights was renting a wooden gozzo boat to explore the coast from the water. Floating near the cliffs, swimming in hidden sea caves, and feeling the warm Mediterranean breeze is something I will never forget. Don't skip Ravello either—set high up in the hills, it offers peaceful gardens and the most dramatic panoramic views of the entire gulf."
+    ],
+    "gallery": [
+      "https://images.unsplash.com/photo-1486016006115-74a41448aea2?auto=format&fit=crop&w=600&q=80"
+    ]
+  },
+  {
+    "id": 3,
+    "title": "A Perfect Weekend in Paris: Art, Cafes, and Hidden Gardens",
+    "slug": "perfect-weekend-paris",
+    "category": "France",
+    "tags": ["City Guide", "Art", "Café Culture"],
+    "date": "June 28, 2026",
+    "readTime": "5 min read",
+    "author": "Marco",
+    "featured": false,
+    "coverImage": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80",
+    "excerpt": "Paris is always a good idea. Here is how to escape the massive tour groups and experience Paris like a local, from the Marais to Saint-Germain-des-Prés.",
+    "content": [
+      "While it is tempting to spend your entire weekend in Paris queueing for the Louvre or the Eiffel Tower, the real magic of the city is found when you slow down and wander without a destination.",
+      "We spent our Saturday morning exploring the Marais district, visiting independent boutiques, and eating fresh falafel on Rue des Rosiers. Afterward, we walked down to the Île de la Cité to admire the progressing restoration of Notre-Dame Cathedral.",
+      "Instead of the crowded Tuileries, we spent our afternoon reading in the Jardin du Luxembourg, sitting on the iconic green metal chairs near the Medici Fountain. It’s the ultimate Parisian pastime—watching the sailboats float on the pond while the afternoon sun filters through the chestnut trees."
+    ],
+    "gallery": [
+      "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=600&q=80"
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Secrets of Florence: Tunnels, Gelato, and the Best Sunset Views",
+    "slug": "secrets-of-florence",
+    "category": "Italy",
+    "tags": ["Florence", "History", "Food"],
+    "date": "June 15, 2026",
+    "readTime": "3 min read",
+    "author": "Marco",
+    "featured": false,
+    "coverImage": "https://images.unsplash.com/photo-1541088640395-97f7c4007d95?auto=format&fit=crop&w=800&q=80",
+    "excerpt": "Beyond the Duomo lies a city rich with hidden alleyways, historic gelato shops, and secret paths used by the Medici family.",
+    "content": [
+      "Florence is the birthplace of the Renaissance, and its streets are practically a living museum. Most visitors flock to the Duomo and the Uffizi Gallery, but if you look closer, there are fascinating secrets waiting to be discovered.",
+      "For instance, did you know that the Medici family built a private elevated corridor, the Vasari Corridor, that connects the Palazzo Vecchio to the Pitti Palace? It runs right across the top of the Ponte Vecchio, allowing the rulers of Florence to traverse the city without mingling with the public.",
+      "For the best views of Florence, skip the long queues to climb the Duomo dome and walk up to San Miniato al Monte church instead. Situated just above Piazzale Michelangelo, it is quieter, older, and offers an unmatched panoramic view of the Arno River and the city skyline as the sun dips below the horizon."
+    ],
+    "gallery": []
+  },
+  {
+    "id": 5,
+    "title": "Exploring the French Riviera: Sun-Drenched Nice and Medieval Eze",
+    "slug": "french-riviera-nice-eze",
+    "category": "France",
+    "tags": ["Riviera", "Beaches", "Medieval Villages"],
+    "date": "May 30, 2026",
+    "readTime": "5 min read",
+    "author": "Marco",
+    "featured": false,
+    "coverImage": "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=80",
+    "excerpt": "With its azure seas, pebble beaches, and dramatic clifftop villages, the Côte d'Azur is a legendary retreat. Here is our day-by-day exploration of Nice and Eze.",
+    "content": [
+      "The French Riviera (Côte d'Azur) has long attracted artists, aristocrats, and travelers searching for the perfect Mediterranean light. Our trip focused on Nice, the hub of the region, and Eze, a spectacular medieval village perched high on a rocky peak.",
+      "In Nice, we loved strolling the famous Promenade des Anglais, watching the yachts and beachgoers, and exploring the narrow streets of the Vieux Nice (Old Town) filled with pastel facades and flower markets.",
+      "Just a short bus ride away lies Eze. Stepping into Eze is like stepping back in time. The village is entirely pedestrianized, with stone-paved lanes winding past artisan workshops, ivy-covered arches, and exotic gardens overlooking the coastline from 1,400 feet above the sea. It is a stunning contrast to the lively beach culture below."
+    ],
+    "gallery": [
+      "https://images.unsplash.com/photo-1568992687947-868a62a9f521?auto=format&fit=crop&w=600&q=80"
+    ]
+  }
+]

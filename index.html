@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bella Voyage — Exploring Italy & France</title>
+  <meta name="description" content="Join me on my journeys through the romantic streets of France and the sun-kissed coastlines of Italy. Personal travel stories, tips, and photography.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Announcement/Top Bar -->
+  <div class="top-bar">
+    <span class="top-bar-text">🇮🇹 Exploring Rome, Florence, Paris & Côte d'Azur 🇫🇷</span>
+  </div>
+
+  <!-- Main Container -->
+  <div class="site-container">
+    
+    <!-- Site Header / Branding -->
+    <header class="site-header">
+      <div class="header-wrap">
+        <div class="logo-area">
+          <a href="#/" class="logo-link">
+            <span class="logo-main">BELLA VOYAGE</span>
+          </a>
+          <p class="logo-tagline">My Travel Experiences in Italy & France</p>
+        </div>
+        
+        <!-- Toggle Button for Mobile Menu -->
+        <button id="mobile-menu-toggle" class="mobile-menu-btn" aria-label="Toggle Navigation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <line x1="4" y1="18" x2="20" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Menu (Desktop) -->
+    <nav class="nav-primary" aria-label="Main Navigation">
+      <div class="nav-wrap">
+        <ul class="nav-menu">
+          <li><a href="#/" class="nav-item active" id="nav-home">Home</a></li>
+          <li><a href="#/about" class="nav-item" id="nav-about">Start Here / About</a></li>
+          <li><a href="#/contact" class="nav-item" id="nav-contact">Contact</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <div class="site-inner">
+      <div class="content-sidebar-wrap">
+        
+        <!-- Main Column (Dynamic Views Rendered Here) -->
+        <main id="main-content" class="content">
+          <!-- Views will be dynamically loaded here by app.js -->
+          <div class="view-loading">
+            <div class="spinner"></div>
+            <p>Loading journey stories...</p>
+          </div>
+        </main>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" role="complementary" aria-label="Primary Sidebar">
+          
+          <!-- Widget: About Blogger -->
+          <section class="widget widget-about">
+            <h4 class="widget-title">The Explorer</h4>
+            <div class="widget-content">
+              <div class="profile-image-container">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&h=200&q=80" alt="Blogger Portrait" class="profile-img">
+              </div>
+              <p class="profile-bio">
+                Welcome to <strong>Bella Voyage</strong>! I'm Marco, a travel enthusiast sharing authentic stories, photos, and guides from my journeys through Italy and France.
+              </p>
+              <a href="#/about" class="btn-readmore-link">Read More About Me</a>
+            </div>
+          </section>
+
+          <!-- Widget: Top Spots Slider -->
+          <section class="widget widget-slider">
+            <h4 class="widget-title">Featured Highlights</h4>
+            <div class="slider-container" id="spots-slider">
+              <div class="slider-wrapper">
+                
+                <div class="slide active">
+                  <img src="https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=400&h=260&q=80" alt="Venice canals">
+                  <div class="slide-caption">
+                    <h5>Venice, Italy</h5>
+                    <p>Wandering romance along the gondola waterways.</p>
+                  </div>
+                </div>
+
+                <div class="slide">
+                  <img src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=400&h=260&q=80" alt="Paris Eiffel Tower">
+                  <div class="slide-caption">
+                    <h5>Paris, France</h5>
+                    <p>Sip, stroll, and get inspired in the City of Light.</p>
+                  </div>
+                </div>
+
+                <div class="slide">
+                  <img src="https://images.unsplash.com/photo-1533900298318-6b8da08a523e?auto=format&fit=crop&w=400&h=260&q=80" alt="Positano Coastline">
+                  <div class="slide-caption">
+                    <h5>Amalfi Coast, Italy</h5>
+                    <p>Breathtaking views clinging to the mountainsides.</p>
+                  </div>
+                </div>
+
+                <div class="slide">
+                  <img src="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=400&h=260&q=80" alt="Nice Riviera view">
+                  <div class="slide-caption">
+                    <h5>Côte d'Azur, France</h5>
+                    <p>Sun-drenched beaches and sapphire waters.</p>
+                  </div>
+                </div>
+
+              </div>
+              
+              <!-- Slider Controls -->
+              <button class="slider-nav prev" aria-label="Previous Slide">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+              <button class="slider-nav next" aria-label="Next Slide">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+
+              <div class="slider-dots">
+                <span class="dot active"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Widget: Newsletter -->
+          <section class="widget widget-newsletter">
+            <h4 class="widget-title">Get Travel Updates</h4>
+            <div class="widget-content">
+              <p>Sign up to receive my latest travel logs, itineraries, and photo diaries straight to your inbox.</p>
+              <form id="newsletter-form" class="newsletter-form">
+                <div class="form-group-compact">
+                  <input type="email" id="newsletter-email" placeholder="Your Email Address" aria-label="Email Address" required>
+                  <button type="submit" class="btn-submit-compact">Sign Up</button>
+                </div>
+                <div id="newsletter-message" class="form-feedback"></div>
+              </form>
+            </div>
+          </section>
+
+          <!-- Widget: Traveling Quote -->
+          <section class="widget widget-quote">
+            <h4 class="widget-title">Travel Inspiration</h4>
+            <div class="quote-box">
+              <p id="travel-quote" class="quote-text">"You may have the universe if I may have Italy."</p>
+              <cite id="quote-author" class="quote-author">— Giuseppe Verdi</cite>
+            </div>
+          </section>
+
+        </aside>
+
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="footer-wrap">
+        <div class="footer-sections">
+          <div class="footer-sec-brand">
+            <h3>BELLA VOYAGE</h3>
+            <p>A personal guide to slow-paced exploration, fine dining, and breathtaking architecture in France and Italy.</p>
+          </div>
+          <div class="footer-sec-links">
+            <h4>Quick Links</h4>
+            <ul>
+              <li><a href="#/">Home</a></li>
+              <li><a href="#/about">About & Guide</a></li>
+              <li><a href="#/contact">Contact</a></li>
+            </ul>
+          </div>
+          <div class="footer-sec-social">
+            <h4>Follow My Journey</h4>
+            <div class="social-icons">
+              <a href="#" aria-label="Instagram">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+              </a>
+              <a href="#" aria-label="Pinterest">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22a8.2 8.2 0 0 1-1.84-2.83 14 14 0 0 1 0-7.89c.32-.82.8-1.57 1.4-2.21a7 7 0 0 1 5-2.23 7 7 0 0 1 5 2.23 14 14 0 0 1 0 7.89 8.2 8.2 0 0 1-1.84 2.83 5.4 5.4 0 0 1-7.72 0z"></path></svg>
+              </a>
+              <a href="#" aria-label="Facebook">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-creds">
+          <p>&copy; 2026 Bella Voyage. Built with passion for European wanders. Hosted on Vercel.</p>
+          <a href="#/disclaimer" class="disclaimer-link">Disclaimer & Privacy Policy</a>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Mobile Navigation Overlay (Drawer) -->
+  <div class="mobile-drawer-overlay" id="mobile-drawer-overlay"></div>
+  <div class="mobile-drawer" id="mobile-drawer">
+    <div class="drawer-header">
+      <span class="drawer-logo">BELLA VOYAGE</span>
+      <button id="mobile-menu-close" class="drawer-close" aria-label="Close Navigation">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <ul class="drawer-menu">
+      <li><a href="#/" class="drawer-item active" id="drawer-home">Home</a></li>
+      <li><a href="#/about" class="drawer-item" id="drawer-about">Start Here / About</a></li>
+      <li><a href="#/contact" class="drawer-item" id="drawer-contact">Contact</a></li>
+    </ul>
+    <div class="drawer-footer">
+      <p>🇮🇹 Bella Voyage 🇫🇷</p>
+    </div>
+  </div>
+
+  <!-- Core Logic Script -->
+  <script src="app.js"></script>
+</body>
+</html>
