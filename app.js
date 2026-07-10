@@ -1159,20 +1159,27 @@ function renderAddPostView() {
 
         <!-- Picture Fields -->
         <div id="picture-fields-group" style="margin-bottom:16px;">
-          <label for="post-cover">Cover Image URL</label>
-          <input type="url" id="post-cover" class="form-control" placeholder="Paste an Unsplash image URL or select a preset below">
-          <div class="cover-presets" style="margin-top: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-            <div class="preset-option" style="cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: var(--transition-smooth);" data-url="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80">
-              <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=80&h=60&q=80" alt="Paris Seine" style="width:100%; display:block; object-fit:cover; height:60px;">
-            </div>
-            <div class="preset-option" style="cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: var(--transition-smooth);" data-url="https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=800&q=80">
-              <img src="https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=80&h=60&q=80" alt="Cinque Terre" style="width:100%; display:block; object-fit:cover; height:60px;">
-            </div>
-            <div class="preset-option" style="cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: var(--transition-smooth);" data-url="https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80">
-              <img src="https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=80&h=60&q=80" alt="Rome Colosseum" style="width:100%; display:block; object-fit:cover; height:60px;">
-            </div>
-            <div class="preset-option" style="cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: var(--transition-smooth);" data-url="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=80">
-              <img src="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=80&h=60&q=80" alt="Nice Riviera" style="width:100%; display:block; object-fit:cover; height:60px;">
+          <div class="form-group" style="margin-bottom:16px;">
+            <label for="post-cover-file">Choose a photo from your files</label>
+            <input type="file" id="post-cover-file" class="form-control" accept="image/*" style="padding-top:8px;">
+          </div>
+          <div style="text-align:center; margin:12px 0; color:var(--color-text-muted); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">— OR PASTE URL / USE PRESETS —</div>
+          <div class="form-group">
+            <label for="post-cover">Cover Image URL</label>
+            <input type="url" id="post-cover" class="form-control" placeholder="Paste an Unsplash image URL or select a preset below">
+            <div class="cover-presets" style="margin-top: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+              <div class="preset-option" style="cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: var(--transition-smooth);" data-url="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80">
+                <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=80&h=60&q=80" alt="Paris Seine" style="width:100%; display:block; object-fit:cover; height:60px;">
+              </div>
+              <div class="preset-option" style="cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: var(--transition-smooth);" data-url="https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=800&q=80">
+                <img src="https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=80&h=60&q=80" alt="Cinque Terre" style="width:100%; display:block; object-fit:cover; height:60px;">
+              </div>
+              <div class="preset-option" style="cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: var(--transition-smooth);" data-url="https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=800&q=80">
+                <img src="https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=80&h=60&q=80" alt="Rome Colosseum" style="width:100%; display:block; object-fit:cover; height:60px;">
+              </div>
+              <div class="preset-option" style="cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: var(--transition-smooth);" data-url="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=80">
+                <img src="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=80&h=60&q=80" alt="Nice Riviera" style="width:100%; display:block; object-fit:cover; height:60px;">
+              </div>
             </div>
           </div>
         </div>
@@ -1211,6 +1218,7 @@ function renderAddPostView() {
   const picFields = DOM.mainContent.querySelector('#picture-fields-group');
   const vidFields = DOM.mainContent.querySelector('#video-fields-group');
   const coverInput = DOM.mainContent.querySelector('#post-cover');
+  const fileInput = DOM.mainContent.querySelector('#post-cover-file');
   const videoInput = DOM.mainContent.querySelector('#post-video');
 
   btnPicture.addEventListener('click', () => {
@@ -1219,7 +1227,6 @@ function renderAddPostView() {
     btnVideo.classList.remove('active');
     picFields.style.display = 'block';
     vidFields.style.display = 'none';
-    coverInput.setAttribute('required', 'true');
     videoInput.removeAttribute('required');
   });
 
@@ -1230,11 +1237,7 @@ function renderAddPostView() {
     vidFields.style.display = 'block';
     picFields.style.display = 'none';
     videoInput.setAttribute('required', 'true');
-    coverInput.removeAttribute('required');
   });
-
-  // Default validation requirement
-  coverInput.setAttribute('required', 'true');
 
   // Preset Selection Logic
   const presets = DOM.mainContent.querySelectorAll('.preset-option');
@@ -1261,6 +1264,15 @@ function renderAddPostView() {
       let coverVal = coverInput.value;
       let videoVal = videoInput.value;
 
+      // Validate picture selection: must have either URL or local file
+      if (selectedType === 'picture') {
+        const hasFile = fileInput && fileInput.files && fileInput.files[0];
+        if (!hasFile && !coverVal) {
+          alert('Please select a photo from your files or enter a cover image URL!');
+          return;
+        }
+      }
+
       // Auto-detect YouTube thumbnail if video post has no custom thumbnail
       if (selectedType === 'video') {
         const customThumb = DOM.mainContent.querySelector('#post-video-cover').value;
@@ -1277,54 +1289,70 @@ function renderAddPostView() {
           }
         }
       }
-      
-      // Parse content paragraphs by splitting on empty lines
-      const contentRaw = DOM.mainContent.querySelector('#post-content').value;
-      const contentParagraphs = contentRaw
-        .split(/\n\s*\n/)
-        .map(p => p.trim())
-        .filter(p => p.length > 0);
 
-      // Parse tags
-      const tagsVal = DOM.mainContent.querySelector('#post-tags').value;
-      const tagsArray = tagsVal
-        .split(',')
-        .map(t => t.trim())
-        .filter(t => t.length > 0);
+      // Save helper function
+      const saveAndRedirect = () => {
+        // Parse content paragraphs by splitting on empty lines
+        const contentRaw = DOM.mainContent.querySelector('#post-content').value;
+        const contentParagraphs = contentRaw
+          .split(/\n\s*\n/)
+          .map(p => p.trim())
+          .filter(p => p.length > 0);
 
-      const slug = titleVal
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '');
+        // Parse tags
+        const tagsVal = DOM.mainContent.querySelector('#post-tags').value;
+        const tagsArray = tagsVal
+          .split(',')
+          .map(t => t.trim())
+          .filter(t => t.length > 0);
 
-      const newPost = {
-        id: Date.now(),
-        type: selectedType,
-        title: titleVal,
-        slug: slug,
-        category: categoryVal,
-        tags: tagsArray.length > 0 ? tagsArray : [categoryVal],
-        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-        readTime: readtimeVal,
-        author: authorVal,
-        featured: false,
-        coverImage: coverVal,
-        videoUrl: selectedType === 'video' ? videoVal : '',
-        excerpt: excerptVal,
-        content: contentParagraphs,
-        gallery: []
+        const slug = titleVal
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)+/g, '');
+
+        const newPost = {
+          id: Date.now(),
+          type: selectedType,
+          title: titleVal,
+          slug: slug,
+          category: categoryVal,
+          tags: tagsArray.length > 0 ? tagsArray : [categoryVal],
+          date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+          readTime: readtimeVal,
+          author: authorVal,
+          featured: false,
+          coverImage: coverVal || 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80',
+          videoUrl: selectedType === 'video' ? videoVal : '',
+          excerpt: excerptVal,
+          content: contentParagraphs,
+          gallery: []
+        };
+
+        // Retrieve existing custom posts, prepend new post, and save
+        const customPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+        customPosts.unshift(newPost);
+        localStorage.setItem('custom_posts', JSON.stringify(customPosts));
+
+        // Prepend to application state active post list
+        state.posts.unshift(newPost);
+
+        // Reset and redirect back home
+        window.location.hash = '#/';
       };
 
-      // Retrieve existing custom posts, prepend new post, and save
-      const customPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
-      customPosts.unshift(newPost);
-      localStorage.setItem('custom_posts', JSON.stringify(customPosts));
-
-      // Prepend to application state active post list
-      state.posts.unshift(newPost);
-
-      // Reset and redirect back home
-      window.location.hash = '#/';
+      // Read local file if chosen
+      if (selectedType === 'picture' && fileInput && fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          coverVal = evt.target.result;
+          saveAndRedirect();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        saveAndRedirect();
+      }
     });
   }
 }
