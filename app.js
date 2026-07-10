@@ -225,11 +225,17 @@ function renderHomeView() {
   // Render Hero Featured Post ONLY if not searching or filtering by different categories
   if (featuredPost && state.activeCategory === 'All' && state.searchQuery === '') {
     const deleteBtn = state.currentUser?.isAdmin ? `<button class="post-delete-btn-overlay" data-id="${featuredPost.id}">Delete</button>` : '';
+    const videoPlayBadge = featuredPost.type === 'video' ? `
+      <div class="video-play-badge" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(212, 175, 55, 0.95); width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; pointer-events:none; box-shadow:0 6px 20px rgba(0,0,0,0.3); transition:var(--transition-smooth); z-index:2;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" style="margin-left:4px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+      </div>
+    ` : '';
     html += `
       <section class="featured-post-hero" style="position:relative;">
         <div class="hero-image-wrap">
           <span class="hero-category-tag">${featuredPost.category}</span>
           ${deleteBtn}
+          ${videoPlayBadge}
           <img src="${featuredPost.coverImage}" alt="${featuredPost.title}">
         </div>
         <div class="hero-content">
@@ -261,11 +267,17 @@ function renderHomeView() {
         return;
       }
       const deleteBtn = state.currentUser?.isAdmin ? `<button class="post-delete-btn-overlay" data-id="${post.id}">Delete</button>` : '';
+      const videoPlayBadge = post.type === 'video' ? `
+        <div class="video-play-badge" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(212, 175, 55, 0.95); width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; pointer-events:none; box-shadow:0 6px 20px rgba(0,0,0,0.3); transition:var(--transition-smooth); z-index:2;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" style="margin-left:3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </div>
+      ` : '';
       html += `
         <article class="post-card" style="position:relative;">
           <div class="card-image-wrap">
             <span class="card-category-tag">${post.category}</span>
             ${deleteBtn}
+            ${videoPlayBadge}
             <a href="#/post/${post.slug}">
               <img src="${post.coverImage}" alt="${post.title}" loading="lazy">
             </a>
@@ -336,6 +348,20 @@ function renderHomeView() {
       }
     });
   }
+}
+
+// Helper to extract YouTube video embed URL
+function getYoutubeEmbedUrl(url) {
+  if (!url) return '';
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  if (match && match[2].length === 12) {
+    // Some channels or short URLs have 12 chars
+    return `https://www.youtube.com/embed/${match[2]}`;
+  } else if (match && match[2].length === 11) {
+    return `https://www.youtube.com/embed/${match[2]}`;
+  }
+  return url;
 }
 
 // ----------------------------------------------------
@@ -415,6 +441,16 @@ function renderPostDetailView(slug) {
     </div>
   ` : '';
 
+  let mediaHtml = `<img src="${post.coverImage}" alt="${post.title}" class="detail-cover">`;
+  if (post.type === 'video' && post.videoUrl) {
+    const embedUrl = getYoutubeEmbedUrl(post.videoUrl);
+    mediaHtml = `
+      <div class="video-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:12px; margin-bottom:32px; box-shadow:0 10px 30px rgba(0,0,0,0.15); background:#000;">
+        <iframe src="${embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;"></iframe>
+      </div>
+    `;
+  }
+
   const html = `
     <article class="post-detail-container">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
@@ -437,7 +473,7 @@ function renderPostDetailView(slug) {
         </div>
       </div>
 
-      <img src="${post.coverImage}" alt="${post.title}" class="detail-cover">
+      ${mediaHtml}
 
       <div class="detail-body">
         ${paragraphsHtml}
@@ -728,12 +764,7 @@ function renderLoginView() {
           <label for="login-email">Email Address</label>
           <input type="email" id="login-email" class="form-control" placeholder="shiakaten@gmail.com" required>
         </div>
-        <div class="form-group" style="margin-bottom:20px;">
-          <label for="login-password">Password</label>
-          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
-        </div>
         <button type="submit" class="btn-primary" style="width:100%;">Login</button>
-        <p style="font-size: 0.8rem; text-align:center; color: var(--color-text-muted); margin-top: 12px;">Tip: Use email <strong>shiakaten@gmail.com</strong> for Admin permissions!</p>
       </form>
 
       <!-- Signup Form -->
@@ -749,17 +780,11 @@ function renderLoginView() {
           <label for="signup-email">Email Address</label>
           <input type="email" id="signup-email" class="form-control" placeholder="email@example.com" required>
         </div>
-        <div class="form-group" style="margin-bottom:20px;">
-          <label for="signup-password">Password</label>
-          <input type="password" id="signup-password" class="form-control" placeholder="••••••••" required>
-        </div>
         <button type="submit" class="btn-primary" style="width:100%;">Sign Up</button>
       </form>
     </div>
   `;
   DOM.mainContent.innerHTML = html;
-
-  // Cache Auth elements
   const loginForm = DOM.mainContent.querySelector('#login-form');
   const signupForm = DOM.mainContent.querySelector('#signup-form');
   const tabLoginBtn = DOM.mainContent.querySelector('#tab-login-btn');
@@ -1088,11 +1113,19 @@ function renderDisclaimerView() {
 // Add Blog Post View Rendering
 // ----------------------------------------------------
 function renderAddPostView() {
+  let selectedType = 'picture'; // track active post type: 'picture' | 'video'
+
   const html = `
     <div class="contact-view-container">
       <h1 class="detail-title">Create a New Travel Post</h1>
       <p style="color:var(--color-text-muted); margin-bottom:32px;">Add your own experience. Once submitted, your post will be immediately visible on the home page list!</p>
       
+      <!-- Type Switcher -->
+      <div class="auth-tabs" style="margin-bottom: 24px; max-width: 400px;">
+        <button class="auth-tab-btn active" id="btn-type-picture" type="button" style="flex:1;">Picture Post</button>
+        <button class="auth-tab-btn" id="btn-type-video" type="button" style="flex:1;">Video Post</button>
+      </div>
+
       <form id="add-post-form" class="comment-form" style="background:var(--color-bg-site);">
         <div class="form-grid">
           <div class="form-group">
@@ -1101,7 +1134,7 @@ function renderAddPostView() {
           </div>
           <div class="form-group">
             <label for="post-author">Author Name</label>
-            <input type="text" id="post-author" class="form-control" placeholder="Your Name" required>
+            <input type="text" id="post-author" class="form-control" placeholder="Your Name" value="${state.currentUser?.name || ''}" required>
           </div>
         </div>
 
@@ -1124,9 +1157,10 @@ function renderAddPostView() {
           <input type="text" id="post-excerpt" class="form-control" placeholder="Brief 1-2 sentence description of the post..." required>
         </div>
 
-        <div class="form-group" style="margin-bottom:16px;">
+        <!-- Picture Fields -->
+        <div id="picture-fields-group" style="margin-bottom:16px;">
           <label for="post-cover">Cover Image URL</label>
-          <input type="url" id="post-cover" class="form-control" placeholder="Paste an Unsplash image URL or select a preset below" required>
+          <input type="url" id="post-cover" class="form-control" placeholder="Paste an Unsplash image URL or select a preset below">
           <div class="cover-presets" style="margin-top: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
             <div class="preset-option" style="cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: var(--transition-smooth);" data-url="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80">
               <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=80&h=60&q=80" alt="Paris Seine" style="width:100%; display:block; object-fit:cover; height:60px;">
@@ -1140,6 +1174,18 @@ function renderAddPostView() {
             <div class="preset-option" style="cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: var(--transition-smooth);" data-url="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=80">
               <img src="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=80&h=60&q=80" alt="Nice Riviera" style="width:100%; display:block; object-fit:cover; height:60px;">
             </div>
+          </div>
+        </div>
+
+        <!-- Video Fields -->
+        <div id="video-fields-group" style="margin-bottom:16px; display:none;">
+          <div class="form-group">
+            <label for="post-video">Video URL (YouTube or similar)</label>
+            <input type="url" id="post-video" class="form-control" placeholder="e.g., https://www.youtube.com/watch?v=Travelxt-h7p">
+          </div>
+          <div class="form-group" style="margin-top:12px;">
+            <label for="post-video-cover">Video Thumbnail / Cover Image URL (Optional)</label>
+            <input type="url" id="post-video-cover" class="form-control" placeholder="Leave blank to auto-detect YouTube thumbnail">
           </div>
         </div>
 
@@ -1159,9 +1205,39 @@ function renderAddPostView() {
   `;
   DOM.mainContent.innerHTML = html;
 
+  // Toggle Type Logic
+  const btnPicture = DOM.mainContent.querySelector('#btn-type-picture');
+  const btnVideo = DOM.mainContent.querySelector('#btn-type-video');
+  const picFields = DOM.mainContent.querySelector('#picture-fields-group');
+  const vidFields = DOM.mainContent.querySelector('#video-fields-group');
+  const coverInput = DOM.mainContent.querySelector('#post-cover');
+  const videoInput = DOM.mainContent.querySelector('#post-video');
+
+  btnPicture.addEventListener('click', () => {
+    selectedType = 'picture';
+    btnPicture.classList.add('active');
+    btnVideo.classList.remove('active');
+    picFields.style.display = 'block';
+    vidFields.style.display = 'none';
+    coverInput.setAttribute('required', 'true');
+    videoInput.removeAttribute('required');
+  });
+
+  btnVideo.addEventListener('click', () => {
+    selectedType = 'video';
+    btnVideo.classList.add('active');
+    btnPicture.classList.remove('active');
+    vidFields.style.display = 'block';
+    picFields.style.display = 'none';
+    videoInput.setAttribute('required', 'true');
+    coverInput.removeAttribute('required');
+  });
+
+  // Default validation requirement
+  coverInput.setAttribute('required', 'true');
+
   // Preset Selection Logic
   const presets = DOM.mainContent.querySelectorAll('.preset-option');
-  const coverInput = DOM.mainContent.querySelector('#post-cover');
   presets.forEach(p => {
     p.addEventListener('click', () => {
       presets.forEach(pr => pr.style.borderColor = 'transparent');
@@ -1181,7 +1257,26 @@ function renderAddPostView() {
       const categoryVal = DOM.mainContent.querySelector('#post-category').value;
       const readtimeVal = DOM.mainContent.querySelector('#post-readtime').value;
       const excerptVal = DOM.mainContent.querySelector('#post-excerpt').value;
-      const coverVal = DOM.mainContent.querySelector('#post-cover').value;
+      
+      let coverVal = coverInput.value;
+      let videoVal = videoInput.value;
+
+      // Auto-detect YouTube thumbnail if video post has no custom thumbnail
+      if (selectedType === 'video') {
+        const customThumb = DOM.mainContent.querySelector('#post-video-cover').value;
+        if (customThumb) {
+          coverVal = customThumb;
+        } else {
+          // Parse YouTube ID
+          const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+          const match = videoVal.match(regExp);
+          if (match && match[2].length === 11) {
+            coverVal = `https://img.youtube.com/vi/${match[2]}/maxresdefault.jpg`;
+          } else {
+            coverVal = 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80';
+          }
+        }
+      }
       
       // Parse content paragraphs by splitting on empty lines
       const contentRaw = DOM.mainContent.querySelector('#post-content').value;
@@ -1204,6 +1299,7 @@ function renderAddPostView() {
 
       const newPost = {
         id: Date.now(),
+        type: selectedType,
         title: titleVal,
         slug: slug,
         category: categoryVal,
@@ -1213,6 +1309,7 @@ function renderAddPostView() {
         author: authorVal,
         featured: false,
         coverImage: coverVal,
+        videoUrl: selectedType === 'video' ? videoVal : '',
         excerpt: excerptVal,
         content: contentParagraphs,
         gallery: []
