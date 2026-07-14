@@ -78,9 +78,7 @@ async function initApp() {
     state.accounts = JSON.parse(savedAccounts);
   } else {
     state.accounts = [
-      { email: 'shiakaten@gmail.com', name: 'Shiakaten', blocked: false },
-      { email: 'traveler1@gmail.com', name: 'Alice Smith', blocked: false },
-      { email: 'visitor2@gmail.com', name: 'Bob Johnson', blocked: true }
+      { email: 'shiakaten@gmail.com', name: 'Shia', blocked: false }
     ];
     localStorage.setItem('accounts', JSON.stringify(state.accounts));
   }
