@@ -587,17 +587,17 @@ function renderAboutView() {
     <div class="about-view-container">
       <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1200&h=450&q=80" alt="Breathtaking landscape" class="about-hero-img">
       
-      <h1 class="detail-title">Welcome to Bella Voyage</h1>
+      <h1 class="detail-title">Welcome to General Travel & Adventure</h1>
       <p style="font-size:1.15rem; color:var(--color-primary); font-family:var(--font-headings); font-style:italic; margin-bottom:24px;">
         "Traveling is a brutality. It forces you to trust strangers and to lose sight of all that familiar comfort of home and friends." — Cesare Pavese
       </p>
       
       <div class="detail-body">
         <p>
-          Welcome! I am incredibly excited to share my upcoming itinerary and experiences through Italy and France. These two countries represent the height of cultural heritage, culinary excellence, and natural beauty.
+          Welcome! I am incredibly excited to share my travel journals, itineraries, and experiences from around the world. Every country represents a unique height of cultural heritage, culinary excellence, and natural beauty.
         </p>
         <p>
-          This website serves as my digital journal. Here, you will find comprehensive guides to the historic sites of Rome, the romantic canals of Venice, the vibrant cafes of Paris, and the spectacular cliff-clinging coastal roads of the French Riviera.
+          This website serves as my digital journal. Here, you will find comprehensive guides to the historic landmarks, vibrant local cafes, and spectacular natural wonders that make exploring the globe so rewarding.
         </p>
         
         <h3 class="about-section-title">My Planning Philosophy</h3>
