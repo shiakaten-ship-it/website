@@ -310,13 +310,28 @@ function renderHomeView() {
     });
     html += `</div>`;
   } else {
-    // Empty Search Result State
-    html += `
-      <div class="empty-state">
-        <h3>No journeys found</h3>
-        <p>We couldn't find any travel stories matching your search query. Try looking for keywords like "Rome", "Paris", or "Coast".</p>
-      </div>
-    `;
+    if (state.posts.length === 0) {
+      html += `
+        <div class="empty-state" style="padding: 60px 20px; text-align: center; background: var(--color-bg-site); border-radius: 12px; border: 1px dashed var(--color-border); margin-top: 24px;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5" style="margin-bottom: 16px; display: inline-block;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <h3 style="font-size: 1.4rem; margin-bottom: 8px; font-family: var(--font-headings);">No Journeys Logged Yet</h3>
+          <p style="color: var(--color-text-muted); max-width: 450px; margin: 0 auto 24px;">Welcome to your new travel blog! Start by clicking the "Add Blog" button at the top to log your first adventure.</p>
+          <a href="#/add-post" class="btn-primary" style="display: inline-block;">Create First Post</a>
+        </div>
+      `;
+    } else {
+      // Empty Search Result State
+      html += `
+        <div class="empty-state">
+          <h3>No journeys found</h3>
+          <p>We couldn't find any travel stories matching your search query. Try looking for keywords like "Rome", "Paris", or "Coast".</p>
+        </div>
+      `;
+    }
   }
 
   DOM.mainContent.innerHTML = html;
