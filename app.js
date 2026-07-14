@@ -1099,7 +1099,6 @@ function deletePost(id) {
   // Add to deleted posts index list
   const deletedIds = JSON.parse(localStorage.getItem('deleted_post_ids')) || [];
   deletedIds.push(id);
-  // Also push string representation just in case
   deletedIds.push(String(id));
   localStorage.setItem('deleted_post_ids', JSON.stringify(deletedIds));
 
@@ -1114,8 +1113,15 @@ function deletePost(id) {
   const filteredCustom = customPosts.filter(p => p.id !== id && String(p.id) !== String(id) && Number(p.id) !== Number(id));
   localStorage.setItem('custom_posts', JSON.stringify(filteredCustom));
 
-  // Redirect back home
-  window.location.hash = '#/';
+  // Handle routing updates cleanly based on current hash
+  const currentHash = window.location.hash;
+  if (currentHash === '#/admin') {
+    renderAdminView();
+  } else if (currentHash === '#/' || currentHash === '') {
+    renderHomeView();
+  } else {
+    window.location.hash = '#/';
+  }
 }
 
 // ----------------------------------------------------
