@@ -671,7 +671,7 @@ function renderContactView() {
             </div>
             <div class="contact-info">
               <h4>Email</h4>
-              <p>hello@bellavoyage.com</p>
+              <p>shiakaten@gmail.com</p>
             </div>
           </div>
 
