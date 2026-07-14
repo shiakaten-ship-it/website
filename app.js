@@ -70,7 +70,7 @@ async function initApp() {
   initSlider();
 
   // Set up auth state
-  state.currentUser = JSON.parse(sessionStorage.getItem('currentUser')) || null;
+  state.currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
   
   // Set up accounts list
   const savedAccounts = localStorage.getItem('accounts');
@@ -756,7 +756,7 @@ function renderAuthWidgets() {
 }
 
 function handleLogout() {
-  sessionStorage.removeItem('currentUser');
+  localStorage.removeItem('currentUser');
   state.currentUser = null;
   renderAuthWidgets();
   if (window.location.hash === '#/admin') {
@@ -770,6 +770,24 @@ function handleLogout() {
 // Login & Signup View Rendering
 // ----------------------------------------------------
 function renderLoginView() {
+  // Generate list of entered accounts for quick select
+  let recentAccountsHtml = '';
+  if (state.accounts && state.accounts.length > 0) {
+    recentAccountsHtml = `
+      <div class="recent-accounts" style="margin-top: 24px; border-top: 1px solid var(--color-border); padding-top: 16px;">
+        <h4 style="font-size: 0.9rem; margin-bottom: 12px; color: var(--color-text-muted); font-family: var(--font-headings);">Quick Select / Saved Accounts:</h4>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          ${state.accounts.map(acc => `
+            <button type="button" class="btn-recent-email" data-email="${escapeHTML(acc.email)}" style="text-align: left; background: var(--color-bg-site); border: 1px solid var(--color-border); padding: 10px 12px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: var(--transition-smooth); width: 100%; font-family: inherit;">
+              <span><strong>${escapeHTML(acc.name)}</strong> <span style="color: var(--color-text-muted); font-size: 0.75rem; margin-left: 6px;">(${escapeHTML(acc.email)})</span></span>
+              <span style="font-size: 0.75rem; color: var(--color-primary); font-weight: 600;">Log In &rarr;</span>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
   const html = `
     <div class="contact-view-container" style="max-width: 500px; margin: 0 auto;">
       <div class="auth-tabs">
@@ -804,6 +822,8 @@ function renderLoginView() {
         </div>
         <button type="submit" class="btn-primary" style="width:100%;">Sign Up</button>
       </form>
+
+      ${recentAccountsHtml}
     </div>
   `;
   DOM.mainContent.innerHTML = html;
@@ -829,6 +849,19 @@ function renderLoginView() {
     loginForm.style.display = 'none';
   });
 
+  // Handle Quick Select Click
+  const recentBtns = DOM.mainContent.querySelectorAll('.btn-recent-email');
+  recentBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const email = btn.getAttribute('data-email');
+      const emailInput = DOM.mainContent.querySelector('#login-email');
+      if (emailInput) {
+        emailInput.value = email;
+        loginForm.requestSubmit(); // trigger login submit validation and flow
+      }
+    });
+  });
+
   // Handle Login Submit
   loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -848,8 +881,8 @@ function renderLoginView() {
       isAdmin: emailVal.toLowerCase() === 'shiakaten@gmail.com'
     };
 
-    // Save mock session
-    sessionStorage.setItem('currentUser', JSON.stringify(userSession));
+    // Save persistent session in localStorage
+    localStorage.setItem('currentUser', JSON.stringify(userSession));
     state.currentUser = userSession;
     
     // Add to accounts list if not already there
@@ -884,13 +917,13 @@ function renderLoginView() {
     state.accounts.push(newAcc);
     localStorage.setItem('accounts', JSON.stringify(state.accounts));
 
-    // Sign in automatically
+    // Sign in automatically persistently
     const userSession = {
       email: emailVal,
       name: nameVal,
       isAdmin: emailVal.toLowerCase() === 'shiakaten@gmail.com'
     };
-    sessionStorage.setItem('currentUser', JSON.stringify(userSession));
+    localStorage.setItem('currentUser', JSON.stringify(userSession));
     state.currentUser = userSession;
 
     renderAuthWidgets();
