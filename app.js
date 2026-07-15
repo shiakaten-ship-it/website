@@ -540,11 +540,11 @@ function renderPostDetailView(slug) {
           <div class="form-grid">
             <div class="form-group">
               <label for="comment-name">Name</label>
-              <input type="text" id="comment-name" class="form-control" placeholder="Your Name" required>
+              <input type="text" id="comment-name" class="form-control" placeholder="Your Name" value="${state.currentUser?.name || ''}" required>
             </div>
             <div class="form-group">
               <label for="comment-email">Email (will not be published)</label>
-              <input type="email" id="comment-email" class="form-control" placeholder="Your Email" required>
+              <input type="email" id="comment-email" class="form-control" placeholder="Your Email" value="${state.currentUser?.email || ''}" required>
             </div>
           </div>
           <div class="form-group" style="margin-bottom:16px;">
