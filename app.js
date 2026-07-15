@@ -11,6 +11,8 @@ const state = {
   currentUser: null,
   accounts: [],
   deletedPostIds: [],
+  messages: [],
+  settings: {},
   quotes: [
     { text: "You may have the universe if I may have Italy.", author: "Giuseppe Verdi" },
     { text: "Paris is always a good idea.", author: "Audrey Hepburn" },
@@ -28,10 +30,12 @@ const DOM = {
   navAbout: document.getElementById('nav-about'),
   navContact: document.getElementById('nav-contact'),
   navAddPost: document.getElementById('nav-add-post'),
+  navSettings: document.getElementById('nav-settings'),
   drawerHome: document.getElementById('drawer-home'),
   drawerAbout: document.getElementById('drawer-about'),
   drawerContact: document.getElementById('drawer-contact'),
   drawerAddPost: document.getElementById('drawer-add-post'),
+  drawerSettings: document.getElementById('drawer-settings'),
   mobileToggle: document.getElementById('mobile-menu-toggle'),
   mobileClose: document.getElementById('mobile-menu-close'),
   mobileDrawer: document.getElementById('mobile-drawer'),
@@ -85,6 +89,20 @@ async function initApp() {
 
   // Load deleted post IDs list
   state.deletedPostIds = JSON.parse(localStorage.getItem('deleted_post_ids')) || [];
+
+  // Load settings
+  state.settings = JSON.parse(localStorage.getItem('settings')) || { 
+    theme: 'dark', 
+    accentColor: '#C96F53', 
+    font: 'Sans-Serif (Plus Jakarta Sans)', 
+    siteTitle: 'General Travel & Adventure', 
+    siteTagline: 'Exploring Journeys and Stories Around the World', 
+    siteFooter: '© 2026 General Travel & Adventure. Built with passion for global wanders.' 
+  };
+  applySettings();
+
+  // Load messages
+  state.messages = JSON.parse(localStorage.getItem('messages')) || [];
 
   // Update authentication widget layout
   renderAuthWidgets();
@@ -140,6 +158,8 @@ function router() {
     renderAddPostView();
   } else if (hash === '#/login') {
     renderLoginView();
+  } else if (hash === '#/settings') {
+    renderSettingsView();
   } else if (hash === '#/admin') {
     if (!state.currentUser || !state.currentUser.isAdmin) {
       window.location.hash = '#/';
@@ -157,7 +177,7 @@ function router() {
 }
 
 function updateActiveNavigation(hash) {
-  const allNavItems = [DOM.navHome, DOM.navAbout, DOM.navContact, DOM.navAddPost, DOM.drawerHome, DOM.drawerAbout, DOM.drawerContact, DOM.drawerAddPost];
+  const allNavItems = [DOM.navHome, DOM.navAbout, DOM.navContact, DOM.navAddPost, DOM.navSettings, DOM.drawerHome, DOM.drawerAbout, DOM.drawerContact, DOM.drawerAddPost, DOM.drawerSettings];
   allNavItems.forEach(el => el?.classList.remove('active'));
 
   if (hash === '#/' || hash === '') {
@@ -172,6 +192,9 @@ function updateActiveNavigation(hash) {
   } else if (hash === '#/add-post') {
     DOM.navAddPost?.classList.add('active');
     DOM.drawerAddPost?.classList.add('active');
+  } else if (hash === '#/settings') {
+    DOM.navSettings?.classList.add('active');
+    DOM.drawerSettings?.classList.add('active');
   }
 }
 
@@ -695,8 +718,29 @@ function renderContactView() {
   if (contactForm) {
     contactForm.addEventListener('submit', (e) => {
       e.preventDefault();
+      const nameVal = DOM.mainContent.querySelector('#contact-name').value.trim();
+      const emailVal = DOM.mainContent.querySelector('#contact-email').value.trim();
+      const messageVal = DOM.mainContent.querySelector('#contact-message').value.trim();
+
+      const newMsg = {
+        id: Date.now(),
+        name: nameVal,
+        email: emailVal,
+        message: messageVal,
+        date: new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric', 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        })
+      };
+
+      state.messages.unshift(newMsg); // Prepend new messages to top
+      localStorage.setItem('messages', JSON.stringify(state.messages));
+
       feedback.className = 'form-feedback success';
-      feedback.textContent = 'Thank you! Your message has been sent successfully. I will get back to you soon.';
+      feedback.textContent = 'Thank you! Your message has been received and saved to my website inbox. I will review it shortly!';
       contactForm.reset();
     });
   }
@@ -937,12 +981,16 @@ function renderLoginView() {
 function renderAdminView() {
   // Generate Accounts Rows
   const accountRows = state.accounts.map(acc => {
-    // Cannot block or delete self (the main admin)
+    // Cannot block, delete, or demote self (the main admin)
     const isSelf = acc.email.toLowerCase() === 'shiakaten@gmail.com';
     const blockText = acc.blocked ? 'Unblock' : 'Block';
     const blockClass = acc.blocked ? 'btn-action-unblock' : 'btn-action-block';
     
+    // Toggle Admin status button
+    const adminText = acc.isAdmin ? 'Demote' : 'Promote';
+    
     const actionsHtml = isSelf ? `<span class="admin-badge" style="background:var(--color-secondary-light); color:var(--color-secondary);">Owner (System)</span>` : `
+      <button class="btn-action-small" data-action="toggle-admin" data-email="${acc.email}" style="background:var(--color-bg-site); color:var(--color-text-main); border:1px solid var(--color-border); cursor:pointer;">${adminText}</button>
       <button class="btn-action-small ${blockClass}" data-action="toggle-block" data-email="${acc.email}">${blockText}</button>
       <button class="btn-action-small btn-action-delete" data-action="delete-user" data-email="${acc.email}">Delete</button>
     `;
@@ -951,6 +999,7 @@ function renderAdminView() {
       <tr>
         <td style="font-weight:600;">${escapeHTML(acc.name)}</td>
         <td>${escapeHTML(acc.email)}</td>
+        <td>${acc.isAdmin ? `<span class="admin-badge" style="background:#E2D3F5; color:#5D29A8;">Admin</span>` : `<span class="admin-badge" style="background:#E2E8F0; color:#475569;">User</span>`}</td>
         <td>${acc.blocked ? `<span class="admin-badge" style="background:#F8D7DA; color:#721C24;">Blocked</span>` : `<span class="admin-badge" style="background:#D4EDDA; color:#155724;">Active</span>`}</td>
         <td style="text-align:right;">${actionsHtml}</td>
       </tr>
@@ -973,6 +1022,32 @@ function renderAdminView() {
     `;
   }).join('');
 
+  // Generate Inbox Messages
+  const messageRows = state.messages.map(msg => {
+    return `
+      <div style="background:var(--color-bg-site); border:1px solid var(--color-border); padding:16px; border-radius:8px; margin-bottom:12px; position:relative;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+          <span style="font-weight:600;">${escapeHTML(msg.name)} <span style="font-weight:normal; color:var(--color-text-muted); font-size:0.85rem;">(${escapeHTML(msg.email)})</span></span>
+          <span style="font-size:0.8rem; color:var(--color-text-muted);">${msg.date}</span>
+        </div>
+        <p style="margin:8px 0 16px 0; font-size:0.95rem; white-space:pre-wrap; color:var(--color-text-main);">${escapeHTML(msg.message)}</p>
+        <div style="text-align:right;">
+          <button class="btn-action-small btn-action-delete" data-action="delete-message" data-id="${msg.id}" style="padding:4px 10px; font-size:0.75rem;">Delete Message</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const messageListHtml = state.messages.length > 0 ? messageRows : `
+    <div style="padding:40px 20px; text-align:center; color:var(--color-text-muted); border:1px dashed var(--color-border); border-radius:8px;">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:10px; color:var(--color-text-muted); opacity:0.6;">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+        <polyline points="22,6 12,13 2,6"></polyline>
+      </svg>
+      <p style="font-size:0.9rem;">No messages in your website inbox.</p>
+    </div>
+  `;
+
   const html = `
     <div class="about-view-container admin-dashboard">
       <h1 class="detail-title" style="margin-bottom:8px;">Admin Dashboard</h1>
@@ -990,6 +1065,10 @@ function renderAdminView() {
         <div class="admin-card" style="border-left-color: var(--color-accent);">
           <h5>Blocked Accounts</h5>
           <div class="admin-card-number">${state.accounts.filter(a => a.blocked).length}</div>
+        </div>
+        <div class="admin-card" style="border-left-color: #5D29A8;">
+          <h5>Inbound Messages</h5>
+          <div class="admin-card-number">${state.messages.length}</div>
         </div>
       </div>
 
@@ -1023,6 +1102,7 @@ function renderAdminView() {
               <tr>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Role</th>
                 <th>Status</th>
                 <th style="text-align:right;">Actions</th>
               </tr>
@@ -1053,11 +1133,38 @@ function renderAdminView() {
           </table>
         </div>
       </section>
+
+      <!-- Contact Messages Inbox -->
+      <section class="admin-section">
+        <h3 class="admin-section-header">Contact Messages Inbox (Website Only)</h3>
+        <div style="margin-top: 16px;">
+          ${messageListHtml}
+        </div>
+      </section>
     </div>
   `;
   DOM.mainContent.innerHTML = html;
 
   // Bind Actions
+  // Toggle admin/user role
+  DOM.mainContent.querySelectorAll('[data-action="toggle-admin"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const email = e.target.getAttribute('data-email');
+      const matched = state.accounts.find(a => a.email === email);
+      if (matched) {
+        matched.isAdmin = !matched.isAdmin;
+        localStorage.setItem('accounts', JSON.stringify(state.accounts));
+        // If current session is affected, update it too
+        if (state.currentUser && state.currentUser.email === email) {
+          state.currentUser.isAdmin = matched.isAdmin;
+          localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
+          renderAuthWidgets();
+        }
+        renderAdminView();
+      }
+    });
+  });
+
   // Toggle block/unblock user
   DOM.mainContent.querySelectorAll('[data-action="toggle-block"]').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -1094,6 +1201,18 @@ function renderAdminView() {
     });
   });
 
+  // Delete contact inbox message
+  DOM.mainContent.querySelectorAll('[data-action="delete-message"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = Number(e.target.getAttribute('data-id'));
+      if (confirm('Are you sure you want to delete this contact message?')) {
+        state.messages = state.messages.filter(msg => msg.id !== id);
+        localStorage.setItem('messages', JSON.stringify(state.messages));
+        renderAdminView();
+      }
+    });
+  });
+
   // Add mock user view binders
   const btnShowAdd = DOM.mainContent.querySelector('#btn-add-mock-user');
   const addFormWrap = DOM.mainContent.querySelector('#add-user-form-container');
@@ -1111,12 +1230,15 @@ function renderAdminView() {
   btnCreateUser.addEventListener('click', () => {
     const nameVal = DOM.mainContent.querySelector('#admin-add-name').value.trim();
     const emailVal = DOM.mainContent.querySelector('#admin-add-email').value.trim();
-    if (nameVal === '' || emailVal === '') return;
-
+    if (nameVal === '' || emailVal === '') {
+      alert('Please fill out all fields.');
+      return;
+    }
     state.accounts.push({
       email: emailVal,
       name: nameVal,
-      blocked: false
+      blocked: false,
+      isAdmin: false
     });
     localStorage.setItem('accounts', JSON.stringify(state.accounts));
     renderAdminView();
@@ -1168,6 +1290,154 @@ function renderDisclaimerView() {
     </div>
   `;
   DOM.mainContent.innerHTML = html;
+}
+
+// ----------------------------------------------------
+// Settings Rendering
+// ----------------------------------------------------
+function renderSettingsView() {
+  const s = state.settings;
+
+  const html = `
+    <div class="contact-view-container" style="max-width: 600px; margin: 0 auto;">
+      <h1 class="detail-title">Settings</h1>
+      <p style="color:var(--color-text-muted); margin-bottom:32px;">Customize the appearance, global branding layout parameters, and configurations of your travel blog platform.</p>
+
+      <form id="settings-form" class="comment-form" style="background:var(--color-bg-site);">
+        
+        <!-- Appearance Settings Section -->
+        <h3 style="margin-bottom:16px; font-family:var(--font-headings); font-size:1.25rem; border-bottom:1px solid var(--color-border); padding-bottom:8px;">Appearance Settings</h3>
+        
+        <div class="form-group" style="margin-bottom:20px;">
+          <label for="settings-theme">Color Theme</label>
+          <select id="settings-theme" class="form-control" style="height:43px;">
+            <option value="dark" ${s.theme === 'dark' ? 'selected' : ''}>Dark Mode (Elegant Slate)</option>
+            <option value="light" ${s.theme === 'light' ? 'selected' : ''}>Light Mode (Warm Sand)</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:20px;">
+          <label for="settings-color">Primary Accent Color</label>
+          <select id="settings-color" class="form-control" style="height:43px;">
+            <option value="#C96F53" ${s.accentColor === '#C96F53' ? 'selected' : ''}>Terracotta Red</option>
+            <option value="#D4AF37" ${s.accentColor === '#D4AF37' ? 'selected' : ''}>Classic Gold</option>
+            <option value="#2E7D32" ${s.accentColor === '#2E7D32' ? 'selected' : ''}>Emerald Green</option>
+            <option value="#1565C0" ${s.accentColor === '#1565C0' ? 'selected' : ''}>Deep Ocean Blue</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:20px;">
+          <label for="settings-font">Typography Font Pair</label>
+          <select id="settings-font" class="form-control" style="height:43px;">
+            <option value="Sans-Serif (Plus Jakarta Sans)" ${s.font === 'Sans-Serif (Plus Jakarta Sans)' ? 'selected' : ''}>Modern Sans (Plus Jakarta Sans)</option>
+            <option value="Serif (Playfair Display)" ${s.font === 'Serif (Playfair Display)' ? 'selected' : ''}>Elegant Serif (Playfair Display)</option>
+            <option value="Modern (Outfit / Custom)" ${s.font === 'Modern (Outfit / Custom)' ? 'selected' : ''}>Minimalist Modern (Outfit / Custom)</option>
+          </select>
+        </div>
+
+        <!-- Global Branding Settings Section -->
+        <h3 style="margin-top:32px; margin-bottom:16px; font-family:var(--font-headings); font-size:1.25rem; border-bottom:1px solid var(--color-border); padding-bottom:8px;">Global Branding Settings</h3>
+        
+        <div class="form-group" style="margin-bottom:20px;">
+          <label for="settings-title">Blog Title</label>
+          <input type="text" id="settings-title" class="form-control" value="${escapeHTML(s.siteTitle || 'General Travel & Adventure')}" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom:20px;">
+          <label for="settings-tagline">Tagline / Subheading</label>
+          <input type="text" id="settings-tagline" class="form-control" value="${escapeHTML(s.siteTagline || 'Exploring Journeys and Stories Around the World')}" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom:20px;">
+          <label for="settings-footer">Footer Copyright Notice</label>
+          <input type="text" id="settings-footer" class="form-control" value="${escapeHTML(s.siteFooter || '© 2026 General Travel & Adventure. Built with passion for global wanders.')}" required>
+        </div>
+
+        <!-- Profile Settings Section -->
+        ${state.currentUser ? `
+          <h3 style="margin-top:32px; margin-bottom:16px; font-family:var(--font-headings); font-size:1.25rem; border-bottom:1px solid var(--color-border); padding-bottom:8px;">Profile Settings (${state.currentUser.email})</h3>
+          
+          <div class="form-group" style="margin-bottom:20px;">
+            <label for="settings-username">Display Name</label>
+            <input type="text" id="settings-username" class="form-control" value="${escapeHTML(state.currentUser.name)}" required>
+          </div>
+        ` : ''}
+
+        <button type="submit" class="btn-primary" style="width:100%; margin-top:16px;">Save Settings</button>
+        <div id="settings-feedback" class="form-feedback" style="text-align:center; margin-top:12px;"></div>
+      </form>
+
+      <!-- Advanced Tools Section -->
+      <form id="reset-db-form" class="comment-form" style="background:var(--color-bg-site); margin-top:32px; border:1px solid #F8D7DA;">
+        <h3 style="color:#721C24; margin-bottom:12px; font-size:1.1rem; font-family:var(--font-headings);">Advanced System Tools</h3>
+        <p style="font-size:0.85rem; color:var(--color-text-muted); margin-bottom:16px;">Clear cached local data to reset the website database state to default system parameters.</p>
+        <button type="submit" class="btn-action-small btn-action-delete" style="width:100%; padding:10px 16px;">Reset Application Cache</button>
+      </form>
+    </div>
+  `;
+  DOM.mainContent.innerHTML = html;
+
+  const settingsForm = DOM.mainContent.querySelector('#settings-form');
+  const feedback = DOM.mainContent.querySelector('#settings-feedback');
+  
+  if (settingsForm) {
+    settingsForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const themeVal = DOM.mainContent.querySelector('#settings-theme').value;
+      const colorVal = DOM.mainContent.querySelector('#settings-color').value;
+      const fontVal = DOM.mainContent.querySelector('#settings-font').value;
+      const titleVal = DOM.mainContent.querySelector('#settings-title').value.trim();
+      const taglineVal = DOM.mainContent.querySelector('#settings-tagline').value.trim();
+      const footerVal = DOM.mainContent.querySelector('#settings-footer').value.trim();
+
+      // Save global settings
+      state.settings = {
+        theme: themeVal,
+        accentColor: colorVal,
+        font: fontVal,
+        siteTitle: titleVal,
+        siteTagline: taglineVal,
+        siteFooter: footerVal
+      };
+      localStorage.setItem('settings', JSON.stringify(state.settings));
+
+      // Save user profile name if logged in
+      const usernameInput = DOM.mainContent.querySelector('#settings-username');
+      if (usernameInput && state.currentUser) {
+        const newName = usernameInput.value.trim();
+        state.currentUser.name = newName;
+        localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
+
+        // Update in accounts array too
+        const matched = state.accounts.find(a => a.email.toLowerCase() === state.currentUser.email.toLowerCase());
+        if (matched) {
+          matched.name = newName;
+          localStorage.setItem('accounts', JSON.stringify(state.accounts));
+        }
+        renderAuthWidgets();
+      }
+
+      // Apply changes globally
+      applySettings();
+
+      feedback.className = 'form-feedback success';
+      feedback.textContent = 'Settings saved and applied successfully!';
+    });
+  }
+
+  const resetForm = DOM.mainContent.querySelector('#reset-db-form');
+  if (resetForm) {
+    resetForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (confirm('Are you sure you want to delete all custom posts, messages, and settings? This will restart the website.')) {
+        localStorage.clear();
+        alert('Cache cleared successfully. Reloading...');
+        window.location.hash = '#/';
+        window.location.reload();
+      }
+    });
+  }
 }
 
 // ----------------------------------------------------
@@ -1610,4 +1880,58 @@ function escapeHTML(str) {
       '"': '&quot;'
     }[tag] || tag)
   );
+}
+
+function applySettings() {
+  const s = state.settings;
+  if (!s) return;
+
+  // Apply Theme
+  if (s.theme === 'light') {
+    document.body.classList.remove('dark-theme');
+  } else {
+    document.body.classList.add('dark-theme');
+  }
+
+  // Apply Accent Color
+  document.documentElement.style.setProperty('--color-primary', s.accentColor);
+  
+  // Apply Font
+  if (s.font === 'Serif (Playfair Display)') {
+    document.documentElement.style.setProperty('--font-body', "'Playfair Display', Georgia, serif");
+    document.documentElement.style.setProperty('--font-headings', "'Playfair Display', Georgia, serif");
+  } else if (s.font === 'Sans-Serif (Plus Jakarta Sans)') {
+    document.documentElement.style.setProperty('--font-body', "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif");
+    document.documentElement.style.setProperty('--font-headings', "'Playfair Display', Georgia, serif");
+  } else if (s.font === 'Modern (Outfit / Custom)') {
+    document.documentElement.style.setProperty('--font-body', "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif");
+    document.documentElement.style.setProperty('--font-headings', "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif");
+  }
+
+  // Apply Site Branding Texts
+  const logoTextEls = document.querySelectorAll('.logo-main');
+  logoTextEls.forEach(el => {
+    if (el && s.siteTitle) el.textContent = s.siteTitle.toUpperCase();
+  });
+  
+  const logoTaglineEl = document.querySelector('.logo-tagline');
+  if (logoTaglineEl && s.siteTagline) {
+    logoTaglineEl.textContent = s.siteTagline;
+  }
+  const topBarTextEl = document.querySelector('.top-bar-text');
+  if (topBarTextEl && s.siteTagline) {
+    topBarTextEl.textContent = `🌎 ${s.siteTagline} ✈️`;
+  }
+  const footerBrandEl = document.querySelector('.footer-sec-brand h3');
+  if (footerBrandEl && s.siteTitle) {
+    footerBrandEl.textContent = s.siteTitle.toUpperCase();
+  }
+  const footerTaglineEl = document.querySelector('.footer-sec-brand p');
+  if (footerTaglineEl && s.siteTagline) {
+    footerTaglineEl.textContent = s.siteTagline;
+  }
+  const footerCredsEl = document.querySelector('.footer-creds p');
+  if (footerCredsEl && s.siteFooter) {
+    footerCredsEl.innerHTML = `${s.siteFooter} Hosted on Vercel.`;
+  }
 }
